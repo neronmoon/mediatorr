@@ -1,0 +1,10 @@
+pyTelegramBotAPI
+tmdbsimple
+requests
+pyyaml
+inject
+urllib3
+python-qbittorrent
+pickledb
+simplejson
+parse-torrent-name

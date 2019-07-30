@@ -1,0 +1,21 @@
+db:
+  path: db/database.db
+
+telegram:
+  token: 965672840:AAEPqMkejPuGmTBPkEn6uHz5wQi5SQfI1LQ
+  users:
+    - 42246983
+
+tmdb:
+  image_prefix: https://image.tmdb.org/t/p/w500/
+  token: 5faf37a82fc681bbe1d2de068ff5b4f1
+
+
+qbittorrent:
+  url: http://192.168.1.37:8080
+  username: neronmoon
+  password: 5588898
+
+jackett:
+  url: http://192.168.1.37:9117
+  token: 8k4rlplcixexjygofuajo6849lrbeo4e
