@@ -13,6 +13,5 @@ class Client(QbitClient):
         try:
             return super()._request(endpoint, method, data, **kwargs)
         except requests.HTTPError as e:
-            self.logout()
             self.login(self.username, self.password)
             return super()._request(endpoint, method, data, **kwargs)
