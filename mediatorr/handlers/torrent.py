@@ -18,45 +18,33 @@ class TorrentListHandler(Handler):
 
     live_thread = None
     live_update = True
-    live_msg_cache_key = 'live_torrent_list_msg'
     live_update_timeout = 2
 
     def run(self, message):
-        if self.db.exists(self.live_msg_cache_key):
-            msg = self.db.get(self.live_msg_cache_key)
-            self.bot.delete_message(chat_id=msg.get('chat_id'), message_id=msg.get('message_id'))
-            self.db.rem(self.live_msg_cache_key)
         response = self.build_response()
         msg = self.bot.send_message(chat_id=message.chat.id, text=response, parse_mode='markdown')
-        msg_dict = self.serialize_message(msg)
-        self.db.set(self.live_msg_cache_key, msg_dict)
 
         if self.live_thread is not None:
             self.live_update = False
             self.live_thread.join()
             self.live_thread = None
 
-        self.live_thread = threading.Thread(target=self.update, args=(msg_dict,))
+        self.live_thread = threading.Thread(target=self.update, args=(msg,))
         self.live_update = True
         self.live_thread.start()
 
-    def update(self, msg_dict):
+    def update(self, msg):
         while self.live_update:
             time.sleep(self.live_update_timeout)
             try:
                 msg = self.bot.edit_message_text(
                     self.build_response(),
-                    chat_id=msg_dict.get('chat_id'),
-                    message_id=msg_dict.get('message_id'),
+                    chat_id=msg.chat.id,
+                    message_id=msg.message_id,
                     parse_mode='markdown'
                 )
-                msg_dict = self.serialize_message(msg)
-                self.db.set(self.live_msg_cache_key, msg_dict)
             except:
                 pass
-
-    def serialize_message(self, msg):
-        return {'text': msg.text, 'message_id': msg.message_id, 'chat_id': msg.chat.id}
 
     def build_response(self):
         response = []
