@@ -94,6 +94,7 @@ class Jackett(object):
 
             # note: engine_url can't be changed, torrent download stops working
             res['engine_url'] = self.url
+            res['category'] = cat
             search_result.append(res)
         return search_result
 

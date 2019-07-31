@@ -2,6 +2,7 @@ db:
   path: db/database.db
 
 telegram:
+  #token: 878867902:AAFODu5TvSUVmQqgquhmXkfR_aishCvUuIc
   token: 965672840:AAEPqMkejPuGmTBPkEn6uHz5wQi5SQfI1LQ
   users:
     - 42246983

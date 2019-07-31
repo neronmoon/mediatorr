@@ -7,6 +7,7 @@ import tmdbsimple as tmdb
 import mediatorr.config as config
 from mediatorr.handlers.catalog import *
 from mediatorr.handlers.torrent import *
+from mediatorr.handlers.torrent_contol import *
 from mediatorr.services.jackett import Jackett
 from mediatorr.services.qbittorrent import Client
 

@@ -1,20 +1,8 @@
 import inject
 
-from mediatorr.handlers.cross_link import CrossLinkHandler
-from mediatorr.handlers.handler import Handler
+from mediatorr.handlers.handler import Handler, CrossLinkHandler
+from mediatorr.handlers.torrent import TorrentCatalogSearchHandler
 from mediatorr.utils.file import download_file
-
-
-def normalize_data(data):
-    return {
-        'id': data['id'],
-        'title': data.get('title') or data.get('name'),
-        'original_title': data.get('original_title') or data.get('original_name'),
-        'year': data.get('release_date') or data.get('first_air_date'),
-        'poster_path': data['poster_path'],
-        'description': data['overview'][:100] + "..\n",
-        'overview': data['overview'],
-    }
 
 
 class CatalogSearchHandler(Handler):
@@ -32,14 +20,15 @@ class CatalogSearchHandler(Handler):
         for result in search.results:
             result = normalize_data(result)
             result['media_type'] = media_type
-            link_id = CrossLinkHandler.store_link('info', result)
-            lst.append(self.build_result_string(link_id, result))
+            link_id = CrossLinkHandler.store_link(CatalogInfoHandler.prefix, result)
+            lst.append(self.__build_result_string(link_id, result))
         text = "\n".join(lst)
         if text:
             self.bot.send_message(message.chat.id, text, parse_mode='markdown')
 
-    def build_result_string(self, link_id, result):
-        return '🍿 *{title}* ({year})\n{description}More: {link_id}\n'.format(
+    @staticmethod
+    def __build_result_string(link_id, result):
+        return '🍿 *{title}* ({year})\n{description}{link_id}\n'.format(
             link_id=link_id,
             **result
         )
@@ -54,7 +43,7 @@ class CatalogSearchHandler(Handler):
 
 
 class CatalogInfoHandler(CrossLinkHandler):
-    regexp = 'info(.*)'
+    prefix = 'info'
 
     catalog = inject.attr('catalog')
     config = inject.attr('config')
@@ -67,15 +56,29 @@ class CatalogInfoHandler(CrossLinkHandler):
             media = self.catalog.TV(payload.get('id'))
         info = normalize_data(media.info(language='ru'))
 
-        text = self.build_result_string(info, category='movies') if payload.get('media_type') == 'movie' \
-            else self.build_result_string(info, category='tv')
+        text = self.__build_result_string(info, category='movies') if payload.get('media_type') == 'movie' \
+            else self.__build_result_string(info, category='tv')
         file = download_file(self.config.get('tmdb').get('image_prefix') + info.get('poster_path'))
         self.bot.send_photo(message.chat.id, open(file, 'rb'), caption=text, parse_mode='markdown')
 
-    def build_result_string(self, info, category):
-        torrents_link = CrossLinkHandler.store_link('torrents', {'info': info, 'categories': [category]})
+    @staticmethod
+    def __build_result_string(info, category):
+        torrents_link = CrossLinkHandler.store_link(
+            TorrentCatalogSearchHandler.prefix, {'info': info, 'categories': [category]}
+        )
         return """*{title}* [{original_title}] ({year})
 {overview}
 {torrents_link}
 """.format(torrents_link=torrents_link, **info)
 
+
+def normalize_data(data):
+    return {
+        'id': data['id'],
+        'title': data.get('title') or data.get('name'),
+        'original_title': data.get('original_title') or data.get('original_name'),
+        'year': (data.get('release_date') or data.get('first_air_date'))[:4],
+        'poster_path': data['backdrop_path'],
+        'description': data['overview'][:100] + "..\n",
+        'overview': data['overview'],
+    }
