@@ -2,13 +2,13 @@ import logging
 
 import pickledb
 import telebot
-from qbittorrent import Client
 import tmdbsimple as tmdb
+
 import mediatorr.config as config
-from mediatorr.handlers.torrent import *
 from mediatorr.handlers.catalog import *
-from mediatorr.handlers.cross_link import *
+from mediatorr.handlers.torrent import *
 from mediatorr.services.jackett import Jackett
+from mediatorr.services.qbittorrent import Client
 
 
 class App:
