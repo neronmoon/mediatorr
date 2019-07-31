@@ -35,6 +35,7 @@ class Handler:
             self.bot.delete_message(process_message.chat.id, process_message.message_id)
             self.bot.reply_to(message, "🚫" + repr(e))
             logging.error(e, exc_info=True)
+            raise e
 
     def get_clean_text(self, message):
         text = message.text
