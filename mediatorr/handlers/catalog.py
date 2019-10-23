@@ -24,14 +24,11 @@ class CatalogSearchHandler(Handler):
             lst.append(self.__build_result_string(link_id, result))
         text = "\n".join(lst)
         if text:
-            self.bot.send_message(message.chat.id, text, parse_mode='markdown')
+            self.bot.send_message(message.chat.id, text, parse_mode='html')
 
     @staticmethod
     def __build_result_string(link_id, result):
-        return '🍿 *{title}* ({year})\n{description}{link_id}\n'.format(
-            link_id=link_id,
-            **result
-        )
+        return '🍿 <b>{title}</b> ({year})\n{description}{link_id}\n'.format(link_id=link_id, **result)
 
     def get_search_api(self, search, message):
         for cmd in self.movies_commands:
@@ -59,14 +56,14 @@ class CatalogInfoHandler(CrossLinkHandler):
         text = self.__build_result_string(info, category='movies') if payload.get('media_type') == 'movie' \
             else self.__build_result_string(info, category='tv')
         file = download_file(self.config.get('tmdb').get('image_prefix') + info.get('poster_path'))
-        self.bot.send_photo(message.chat.id, open(file, 'rb'), caption=text, parse_mode='markdown')
+        self.bot.send_photo(message.chat.id, open(file, 'rb'), caption=text, parse_mode='html')
 
     @staticmethod
     def __build_result_string(info, category):
         torrents_link = CrossLinkHandler.store_link(
             TorrentCatalogSearchHandler.prefix, {'info': info, 'categories': [category]}
         )
-        return """*{title}* [{original_title}] ({year})
+        return """<b>{title}</b> [{original_title}] ({year})
 {overview}
 {torrents_link}
 """.format(torrents_link=torrents_link, **info)

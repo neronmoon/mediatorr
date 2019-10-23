@@ -22,11 +22,7 @@ class Handler:
         process_message = self.bot.reply_to(message, "🤔 Processing..")
         try:
             self.run(message)
-            self.bot.edit_message_text(
-                "✅ OK!",
-                chat_id=process_message.chat.id,
-                message_id=process_message.message_id
-            )
+            self.bot.edit_message_text("✅ OK!", chat_id=process_message.chat.id, message_id=process_message.message_id)
             self.delay_remove_message(process_message.chat.id, process_message.message_id)
         except Exception as e:
             self.bot.delete_message(process_message.chat.id, process_message.message_id)

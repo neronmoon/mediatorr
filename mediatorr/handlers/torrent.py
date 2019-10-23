@@ -3,7 +3,7 @@ import inject
 
 from mediatorr.handlers.handler import Handler, CrossLinkHandler
 from mediatorr.utils.file import download_telegram_file
-from mediatorr.utils.string import sizeof_fmt, time_fmt
+from mediatorr.utils.string import sizeof_fmt
 
 
 class TorrentUploadHandler(Handler):
@@ -25,7 +25,7 @@ class TorrentSearchHandler(Handler):
         clean_text = self.get_clean_text(message)
         text = self.search(clean_text)
         if text:
-            self.bot.send_message(message.chat.id, text, parse_mode='markdown')
+            self.bot.send_message(message.chat.id, text, parse_mode='html')
 
     def search(self, query, categories=['movies', 'tv']):
         results = []
@@ -52,11 +52,8 @@ class TorrentSearchHandler(Handler):
         badges.append("[%s]" % sizeof_fmt(int(result['size'].replace('B', '').strip())))
         badges.append("[Seeds: %s]" % (result['seeds'] + result['leech']))
 
-        return '🍿{badges}\n{name}\n{link_id}\n'.format(
-            link_id=link_id,
-            badges="" if not badges else " *%s* " % ("".join(badges)),
-            **result
-        )
+        badges_string = "" if not badges else " <b>%s</b> " % ("".join(badges))
+        return '🍿{badges}\n{name}\n{link_id}\n'.format(link_id=link_id, badges=badges_string, **result)
 
     @staticmethod
     def __sort_and_filter_results(raw_results, limit=15):
@@ -75,7 +72,7 @@ class TorrentCatalogSearchHandler(TorrentSearchHandler, CrossLinkHandler):
             categories=payload.get('categories')
         )
         if text:
-            self.bot.send_message(message.chat.id, text, parse_mode='markdown')
+            self.bot.send_message(message.chat.id, text, parse_mode='html')
 
     @staticmethod
     def __build_search_query(info):
