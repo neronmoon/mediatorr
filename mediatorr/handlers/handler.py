@@ -19,10 +19,7 @@ class Handler:
         self.bot = bot
 
     def handle(self, message):
-        process_message = self.bot.reply_to(
-            message,
-            "🤔 Processing.."
-        )
+        process_message = self.bot.reply_to(message, "🤔 Processing..")
         try:
             self.run(message)
             self.bot.edit_message_text(
@@ -39,8 +36,9 @@ class Handler:
 
     def get_clean_text(self, message):
         text = message.text
-        for command in self.commands:
-            text = text.replace('/%s' % command, '')
+        if self.commands is not None:
+            for command in self.commands:
+                text = text.replace('/%s' % command, '')
         return text
 
     def delay_remove_message(self, chat_id, message_id, timeout=1):

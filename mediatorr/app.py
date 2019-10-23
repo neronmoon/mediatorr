@@ -24,9 +24,9 @@ class App:
             TorrentSearchHandler,
             TorrentUploadHandler,
             TorrentSearchDownloadHandler,
-            TorrentCatalogSearchHandler,
-            CatalogSearchHandler,
-            CatalogInfoHandler,
+            # TorrentCatalogSearchHandler,
+            # CatalogSearchHandler,
+            # CatalogInfoHandler,
         ]
         self.__configure()
 

@@ -18,7 +18,7 @@ class TorrentUploadHandler(Handler):
 
 class TorrentSearchHandler(Handler):
     help = 'Search torrents'
-    commands = ['т','searchtorrent', 'st', 't']
+    regexp = ".*"
     jackett = inject.attr('jackett')
 
     def run(self, message):

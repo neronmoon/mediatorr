@@ -18,30 +18,34 @@ class TorrentListHandler(Handler):
     live_update_timeout = 2
 
     def run(self, message):
-        response = self.build_response()
-        msg = self.bot.send_message(chat_id=message.chat.id, text=response, parse_mode='markdown')
-
         if self.live_thread is not None:
             self.live_update = False
             self.live_thread.join()
             self.live_thread = None
 
-        self.live_thread = threading.Thread(target=self.update, args=(msg,))
+        self.live_thread = threading.Thread(target=self.update, args=(message.chat.id,))
         self.live_update = True
         self.live_thread.start()
 
-    def update(self, msg):
+    def update(self, chat_id=None):
+        msg = None
+        last_text = ""
         while self.live_update:
-            time.sleep(self.live_update_timeout)
             try:
-                msg = self.bot.edit_message_text(
-                    self.build_response(),
-                    chat_id=msg.chat.id,
-                    message_id=msg.message_id,
-                    parse_mode='markdown'
-                )
+                response = self.build_response()
+                if msg is None:
+                    msg = self.bot.send_message(chat_id=chat_id, text=response, parse_mode='html')
+                if msg is not None and last_text != response:
+                    last_text = response
+                    msg = self.bot.edit_message_text(
+                        response,
+                        chat_id=msg.chat.id,
+                        message_id=msg.message_id,
+                        parse_mode='html'
+                    )
             except:
                 pass
+            time.sleep(self.live_update_timeout)
 
     def build_response(self):
         response = []
@@ -73,11 +77,11 @@ class TorrentListHandler(Handler):
             statuses[torrent['state']]
         ]
         if torrent['progress'] != 1:
-            chunks.append("*{:.0%}*".format(torrent['progress']))
+            chunks.append("<b>{:.0%}</b>".format(torrent['progress']))
         chunks.append('{0}'.format(torrent['name']))
         is_downloading = torrent['state'] in ['downloading', 'stalledDL', 'metaDL']
         if is_downloading:
-            chunks.append("*| %s |*" % sizeof_fmt(torrent['dlspeed'], 'B/s'))
+            chunks.append("<b>| %s |</b>" % sizeof_fmt(torrent['dlspeed'], 'B/s'))
             chunks.append(time_fmt(torrent['eta']))
 
         if is_downloading:
