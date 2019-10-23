@@ -9,7 +9,7 @@ from mediatorr.utils.string import sizeof_fmt, time_fmt
 
 class TorrentListHandler(Handler):
     help = 'List of added torrents'
-    commands = ['torrents', 'list', 'tl']
+    commands = ['torrents', 'list', 'tl', 'l']
     torrent = inject.attr('torrent')
     db = inject.attr('db')
 

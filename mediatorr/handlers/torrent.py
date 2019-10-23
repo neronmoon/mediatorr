@@ -18,7 +18,7 @@ class TorrentUploadHandler(Handler):
 
 class TorrentSearchHandler(Handler):
     help = 'Search torrents'
-    commands = ['searchtorrent', 'st', 't']
+    commands = ['т','searchtorrent', 'st', 't']
     jackett = inject.attr('jackett')
 
     def run(self, message):

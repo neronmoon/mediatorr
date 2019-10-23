@@ -6,8 +6,8 @@ from mediatorr.utils.file import download_file
 
 
 class CatalogSearchHandler(Handler):
-    movies_commands = ['movie', 'm']
-    tv_commands = ['tv', 'series', 's']
+    movies_commands = ['м', 'к', 'ф', 'кино', 'фильм', 'movie', 'm']
+    tv_commands = ['tv', 'series', 's', 'с', 'сериал']
     commands = movies_commands + tv_commands
 
     catalog = inject.attr('catalog')

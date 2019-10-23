@@ -13,10 +13,10 @@ tmdb:
 
 
 qbittorrent:
-  url: http://192.168.1.37:8080
+  url: http://home.local:8080
   username: neronmoon
   password: 5588898
 
 jackett:
-  url: http://192.168.1.37:9117
+  url: http://home.local:9117
   token: 8k4rlplcixexjygofuajo6849lrbeo4e
