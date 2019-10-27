@@ -18,7 +18,7 @@ class TorrentUploadHandler(Handler):
 
 class TorrentSearchHandler(Handler):
     help = 'Search torrents'
-    regexp = ".*"
+    func = lambda _, msg: not msg.text.startswith('/')
     jackett = inject.attr('jackett')
 
     def run(self, message):
@@ -80,6 +80,7 @@ class TorrentCatalogSearchHandler(TorrentSearchHandler, CrossLinkHandler):
 
 
 class TorrentSearchDownloadHandler(CrossLinkHandler):
+    commands = None
     prefix = 'download'
 
     jackett = inject.attr('jackett')
@@ -87,6 +88,7 @@ class TorrentSearchDownloadHandler(CrossLinkHandler):
 
     def run(self, message):
         payload = self.get_payload(message)
+
         local_file_path = self.jackett.download_torrent(payload.get('link'))
         if local_file_path.startswith('magnet:?'):
             self.torrent.download_from_link(local_file_path, category=payload.get('category'))

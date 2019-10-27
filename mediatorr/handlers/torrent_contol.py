@@ -105,7 +105,7 @@ class TorrentPauseAllHandler(Handler):
 
 
 class TorrentPauseHandler(CrossLinkHandler):
-    prefix = "pauseone"
+    prefix = "pause"
     torrent = inject.attr('torrent')
 
     def run(self, message):
@@ -122,7 +122,7 @@ class TorrentResumeAllHandler(Handler):
 
 
 class TorrentResumeHandler(CrossLinkHandler):
-    prefix = "resumeone"
+    prefix = "resume"
     torrent = inject.attr('torrent')
 
     def run(self, message):

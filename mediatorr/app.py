@@ -37,9 +37,11 @@ class App:
     def __configure_services(self):
         def configurator(binder):
             cfg = config.app
+            logging_level = logging.getLevelName(cfg.get('logging', {}).get('level', 'INFO'))
             binder.bind('app', self)
             binder.bind('config', cfg)
-            telebot.logger.setLevel(logging.DEBUG)
+            logging.getLogger().setLevel(logging_level)
+            telebot.logger.setLevel(logging_level)
             binder.bind('bot', telebot.TeleBot(cfg.get('telegram').get('token')))
             binder.bind('jackett', Jackett(
                 cfg.get('jackett').get('url'),

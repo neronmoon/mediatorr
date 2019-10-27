@@ -19,6 +19,7 @@ class Handler:
         self.bot = bot
 
     def handle(self, message):
+        logging.debug("Processing message %s with handler %s" % (message.text, type(self)))
         process_message = self.bot.reply_to(message, "🤔 Processing..")
         try:
             self.run(message)
@@ -56,7 +57,7 @@ class CrossLinkHandler(Handler):
 
     @property
     def regexp(self):
-        return self.prefix + '(.*)'
+        return self.prefix + '(\d+)'
 
     def get_payload(self, message):
         cross_link_id = re.search(self.regexp, message.text).group(1)
