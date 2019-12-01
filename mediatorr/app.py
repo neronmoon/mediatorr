@@ -1,32 +1,22 @@
-import logging
-
-import pickledb
 import telebot
 import tmdbsimple as tmdb
-
+import tinydb
+import logging
 import mediatorr.config as config
-from mediatorr.handlers.catalog import *
 from mediatorr.handlers.torrent import *
 from mediatorr.handlers.torrent_contol import *
 from mediatorr.services.jackett import Jackett
 from mediatorr.services.qbittorrent import Client
+from mediatorr.services.tinydb_storage import ThreadSafeJSONStorage
 
 
 class App:
     def __init__(self):
         self.handlers = [
             TorrentListHandler,
-            TorrentPauseAllHandler,
-            TorrentResumeAllHandler,
-            TorrentPauseHandler,
-            TorrentResumeHandler,
-            TorrentDeleteHandler,
             TorrentSearchHandler,
             TorrentUploadHandler,
             TorrentSearchDownloadHandler,
-            # TorrentCatalogSearchHandler,
-            # CatalogSearchHandler,
-            # CatalogInfoHandler,
         ]
         self.__configure()
 
@@ -55,7 +45,10 @@ class App:
             if login_exception:
                 raise Exception(login_exception)
             binder.bind('torrent', torrent_client)
-            binder.bind('db', pickledb.load(cfg.get('db').get('path'), False))
+            binder.bind('db', tinydb.TinyDB(
+                cfg.get('db').get('path'),
+                storage=ThreadSafeJSONStorage
+            ))
             tmdb.API_KEY = cfg.get('tmdb').get('token')
             binder.bind('catalog', tmdb)
 
@@ -66,7 +59,7 @@ class App:
         for handler in self.handlers:
             instance = handler(bot)
             bot.add_message_handler({
-                'function': instance.handle,
+                'function': instance.handle_message,
                 'filters': {
                     'commands': instance.commands,
                     'content_types': instance.content_types,
@@ -75,10 +68,15 @@ class App:
                 },
                 'instance': instance
             })
+            if instance.callback_func is not None:
+                bot.add_callback_query_handler({
+                    'function': instance.handle_callback,
+                    'filters': {
+                        'func': instance.callback_func
+                    },
+                    'instance': instance
+                })
 
     def run(self):
-        try:
-            print("Bot is running!")
-            inject.instance('bot').polling()
-        finally:
-            inject.instance('db').dump()
+        print("Bot is running!")
+        inject.instance('bot').polling()

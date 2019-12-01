@@ -2,7 +2,7 @@ import xml.etree.ElementTree
 from http.cookiejar import CookieJar
 from urllib import request as urllib_request
 from urllib.parse import urlencode, unquote
-
+from mediatorr.models.torrent import Torrent
 from mediatorr.utils.file import download_file
 
 
@@ -96,7 +96,12 @@ class Jackett(object):
             res['engine_url'] = self.url
             res['category'] = cat
             search_result.append(res)
-        return search_result
+        models = []
+        for result in search_result:
+            model = Torrent()
+            model.from_jackett_payload(result)
+            models.append(model)
+        return models
 
     def generate_xpath(self, tag):
         return './{http://torznab.com/schemas/2015/feed}attr[@name="%s"]' % tag
