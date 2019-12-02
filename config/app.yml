@@ -9,6 +9,10 @@ telegram:
   users:
     - 42246983
 
+notifications:
+  chat_id: 42246983
+
+
 tmdb:
   image_prefix: https://image.tmdb.org/t/p/w500/
   token: 5faf37a82fc681bbe1d2de068ff5b4f1

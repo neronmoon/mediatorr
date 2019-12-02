@@ -1,5 +1,7 @@
 import logging
 import re
+
+import telebot
 from tinydb import Query
 from mediatorr.models.link import Link
 from mediatorr.utils.telegram_keyboard import pagination_keyboard
@@ -95,7 +97,7 @@ class LiveHandler(Handler):
                         message_id=msg.message_id,
                         parse_mode='html'
                     )
-            except:
+            except telebot.apihelper.ApiException as e:
                 pass
             time.sleep(self.live_update_timeout)
 
@@ -113,12 +115,13 @@ class CrossLinkHandler(Handler):
         return self.prefix + '(\d+)'
 
     def get_payload(self, message):
-        cross_link_id = re.search(self.regexp, message.text).group(1)
-        return self.db.table('links').get(Query().doc_id == cross_link_id)
+        cl_id = re.search(self.regexp, message.text).group(1)
+        return Link.get_table().get(doc_id=int(cl_id)).get('payload')
 
     @classmethod
     def make_link(cls, payload):
-        link_id = Link(cls.prefix, payload).save()
+        link = Link(cls.prefix, payload)
+        link_id = Link.get_table().upsert(link, Link.query().id == link.get('id'))[0]
         return "/%s%s" % (cls.prefix, link_id,)
 
 

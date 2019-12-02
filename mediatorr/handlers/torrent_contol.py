@@ -14,7 +14,7 @@ class TorrentListHandler(LiveHandler):
         torrents = self.torrent.torrents()
         torrents.sort(key=lambda x: x['state'])
         for trt in torrents:
-            trt.save()
+            trt.get_table().upsert(trt, trt.query().hash == trt.get('hash'))
             response.append(trt.make_status_string())
-        return '\n'.join(response)
+        return '\n\n'.join(response)
 

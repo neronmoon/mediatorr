@@ -8,6 +8,7 @@ from mediatorr.handlers.torrent_contol import *
 from mediatorr.services.jackett import Jackett
 from mediatorr.services.qbittorrent import Client
 from mediatorr.services.tinydb_storage import ThreadSafeJSONStorage
+from mediatorr.workers.notifications import NotifyOnDownloadCompleteWorker
 
 
 class App:
@@ -18,6 +19,10 @@ class App:
             TorrentUploadHandler,
             TorrentSearchDownloadHandler,
         ]
+        self.workers = [
+            NotifyOnDownloadCompleteWorker
+        ]
+        self.running_workers = []
         self.__configure()
 
     def __configure(self):
@@ -77,6 +82,14 @@ class App:
                     'instance': instance
                 })
 
+    def __start_workers(self):
+        for worker in self.workers:
+            w = worker()
+            w.start()
+            self.running_workers.append(w)
+
     def run(self):
+        print("Starting workers!")
+        self.__start_workers()
         print("Bot is running!")
         inject.instance('bot').polling()

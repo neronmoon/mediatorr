@@ -1,5 +1,4 @@
 import inject
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from mediatorr.handlers.handler import Handler, CrossLinkHandler, PaginatingHandler
 from mediatorr.utils.file import download_telegram_file
 
@@ -30,7 +29,7 @@ class TorrentSearchHandler(PaginatingHandler):
         lst = []
         results.sort(key=lambda x: x.get('seeds') + x.get('leech'), reverse=True)
         for result in results:
-            result.save()
+            result.get_table().upsert(result, result.query().name == result.get('name'))
             link = TorrentSearchDownloadHandler.make_link(result)
             lst.append(result.make_search_result_string(link))
         return lst
@@ -45,7 +44,6 @@ class TorrentSearchDownloadHandler(CrossLinkHandler):
 
     def run(self, message):
         payload = self.get_payload(message)
-
         local_file_path = self.jackett.download_torrent(payload.get('link'))
         if local_file_path.startswith('magnet'):
             self.torrent.download_from_link(local_file_path, category=payload.get('category'))

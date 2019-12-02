@@ -1,13 +1,18 @@
 from mediatorr.models.model import Model
-from mediatorr.utils.string import sizeof_fmt
+from mediatorr.utils.string import sizeof_fmt, time_fmt
 import PTN
 
-TORRENT_STATE_NONE = ''
-TORRENT_STATE_ERROR = 'error'
-TORRENT_STATE_PAUSE = 'pause'
-TORRENT_STATE_CHECKING = 'checking'
-TORRENT_STATE_DOWNLOADING = 'downloading'
-TORRENT_STATE_OK = 'ok'
+import json
+import uuid
+
+ID_NAMESPACE = uuid.UUID('{503cf7de-2957-4504-a4ae-60283b60c599}')
+
+TORRENT_STATE_NONE = 'UNKNOWN'
+TORRENT_STATE_ERROR = 'ERROR'
+TORRENT_STATE_PAUSE = 'PAUSED'
+TORRENT_STATE_CHECKING = 'CHECKING'
+TORRENT_STATE_DOWNLOADING = 'DOWNLOADING'
+TORRENT_STATE_OK = 'OK'
 
 TORRENT_STATES = [
     TORRENT_STATE_NONE,
@@ -30,7 +35,7 @@ TORRENT_STATE_EMOJI = {
 
 class Torrent(Model):
     table = 'torrents'
-    keys = ['name', 'link', 'size', 'category',
+    keys = ['id', 'name', 'link', 'size', 'category',
             'desc_link', 'hash', 'progress', 'eta',
             'speed', 'state', 'seeds', 'leech']
 
@@ -58,10 +63,11 @@ class Torrent(Model):
             'checkingUP': TORRENT_STATE_CHECKING,
             'checkingDL': TORRENT_STATE_CHECKING,
             'downloading': TORRENT_STATE_DOWNLOADING,
-            'stalledDL': TORRENT_STATE_DOWNLOADING,
+            'stalledDL': TORRENT_STATE_OK,
             'metaDL': TORRENT_STATE_DOWNLOADING,
         }
         return self.__fill(
+            id=self.get_id(),
             name=payload.get('name'),
             hash=payload.get('hash'),
             progress=payload.get('progress'),
@@ -72,6 +78,7 @@ class Torrent(Model):
 
     def from_jackett_payload(self, payload):
         return self.__fill(
+            id=self.get_id(),
             name=payload.get('name'),
             link=payload.get('link'),
             size=payload.get('size'),
@@ -98,3 +105,20 @@ class Torrent(Model):
         badges_string = "" if not badges else " <b>%s</b> " % ("".join(badges))
         return '🍿{badges}\n{name}\n{link_id}\n'.format(link_id=link_id, badges=badges_string, **self)
 
+    def make_status_string(self):
+        chunks = [
+            TORRENT_STATE_EMOJI[self.get('state')]
+        ]
+        if self.get('progress') != 1:
+            chunks.append("<b>{:.0%}</b>".format(self.get('progress')))
+        chunks.append('{0}'.format(self.get('name')))
+        if self.get('state') == TORRENT_STATE_DOWNLOADING:
+            chunks.append("<b>| %s |</b>" % sizeof_fmt(self.get('speed'), 'B/s'))
+            chunks.append(time_fmt(self.get('eta')))
+
+        return " ".join(chunks)
+
+    def get_id(self):
+        return str(uuid.uuid3(ID_NAMESPACE, json.dumps([
+            self.get('name'),
+        ])))
