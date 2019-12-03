@@ -87,6 +87,8 @@ class LiveHandler(Handler):
         while self.live_update:
             try:
                 response = self.make_message()
+                if response == "":
+                    response = "<No data>"
                 if msg is None:
                     msg = self.bot.send_message(chat_id=chat_id, text=response, parse_mode='html')
                 if msg is not None and last_text != response:
@@ -167,6 +169,8 @@ class PaginatingHandler(Handler):
         return 'pagination_items_' + self.prefix
 
     def __join_items(self, items, page):
+        if len(items) == 0:
+            return "<No items>"
         offset = self.page_size * (page - 1)
         limit = self.page_size * page
         return '\n'.join(items[offset:limit])
