@@ -4,7 +4,7 @@ import threading
 
 class Worker(threading.Thread):
     alive = True
-    interval = 10
+    interval = 1
     exceptions_count = 5
 
     def run(self):

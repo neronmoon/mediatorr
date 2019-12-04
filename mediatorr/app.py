@@ -3,22 +3,20 @@ import tmdbsimple as tmdb
 import tinydb
 import logging
 import mediatorr.config as config
-from mediatorr.handlers.torrent import *
-from mediatorr.handlers.torrent_contol import *
-from mediatorr.services.jackett import Jackett
-from mediatorr.services.qbittorrent import Client
+from mediatorr.services.command_processor import CommandProcessor
+from mediatorr.controllers.search_torrent import *
+from mediatorr.controllers.control_torrent import *
+from mediatorr.controllers.download_torrent import *
+from mediatorr.services.torrent_search import TorrentSearchService
+from mediatorr.services.torrent_client import TorrentClient
+from mediatorr.services.api.jackett import Jackett
+from qbittorrentapi import Client
 from mediatorr.services.tinydb_storage import ThreadSafeJSONStorage
 from mediatorr.workers.notifications import NotifyOnDownloadCompleteWorker
 
 
 class App:
     def __init__(self):
-        self.handlers = [
-            TorrentListHandler,
-            TorrentSearchHandler,
-            TorrentUploadHandler,
-            TorrentSearchDownloadHandler,
-        ]
         self.workers = [
             NotifyOnDownloadCompleteWorker
         ]
@@ -27,60 +25,57 @@ class App:
 
     def __configure(self):
         self.__configure_services()
-        self.__register_handlers()
 
     def __configure_services(self):
         def configurator(binder):
             cfg = config.app
             logging_level = logging.getLevelName(cfg.get('logging', {}).get('level', 'INFO'))
-            binder.bind('app', self)
-            binder.bind('config', cfg)
             logging.getLogger().setLevel(logging_level)
             telebot.logger.setLevel(logging_level)
-            binder.bind('bot', telebot.TeleBot(cfg.get('telegram').get('token')))
-            binder.bind('jackett', Jackett(
-                cfg.get('jackett').get('url'),
-                cfg.get('jackett').get('token')
-            ))
-            torrent_client = Client(cfg.get('qbittorrent').get('url'))
-            login_exception = torrent_client.login(
-                cfg.get('qbittorrent').get('username'),
-                cfg.get('qbittorrent').get('password')
+            binder.bind('app', self)
+            binder.bind('config', cfg)
+            processor = self.__make_processor()
+            binder.bind('processor', processor)
+            bot = telebot.TeleBot(cfg.get('telegram').get('token'))
+            bot.add_message_handler({
+                'function': processor.process_message,
+                'filters': {'content_types': ['text']},
+                'instance': processor
+            })
+            bot.add_message_handler({
+                'function': processor.process_file,
+                'filters': {'content_types': ['document']},
+                'instance': processor
+            })
+            bot.add_callback_query_handler({
+                'function': processor.process_callback,
+                'filters': {'func': lambda _1: True},
+                'instance': processor
+            })
+            binder.bind('bot', bot)
+            db = tinydb.TinyDB(cfg.get('db').get('path'), storage=ThreadSafeJSONStorage)
+            binder.bind('db', db)
+            jackett = Jackett(cfg.get('jackett').get('url'), cfg.get('jackett').get('token'))
+            binder.bind('search_service', TorrentSearchService(db, jackett))
+            torrent_config = cfg.get('qbittorrent')
+            qbittorrent = Client(
+                host=torrent_config.get('url'),
+                username=torrent_config.get('username'),
+                password=torrent_config.get('password'),
+                RAISE_UNIMPLEMENTEDERROR_FOR_UNIMPLEMENTED_API_ENDPOINTS=True
             )
-            if login_exception:
-                raise Exception(login_exception)
-            binder.bind('torrent', torrent_client)
-            binder.bind('db', tinydb.TinyDB(
-                cfg.get('db').get('path'),
-                storage=ThreadSafeJSONStorage
-            ))
+            binder.bind('torrent_service', TorrentClient(db, qbittorrent))
             tmdb.API_KEY = cfg.get('tmdb').get('token')
             binder.bind('catalog', tmdb)
 
         inject.clear_and_configure(configurator)
 
-    def __register_handlers(self):
-        bot = inject.instance('bot')
-        for handler in self.handlers:
-            instance = handler(bot)
-            bot.add_message_handler({
-                'function': instance.handle_message,
-                'filters': {
-                    'commands': instance.commands,
-                    'content_types': instance.content_types,
-                    'regexp': instance.regexp,
-                    'func': instance.func
-                },
-                'instance': instance
-            })
-            if instance.callback_func is not None:
-                bot.add_callback_query_handler({
-                    'function': instance.handle_callback,
-                    'filters': {
-                        'func': instance.callback_func
-                    },
-                    'instance': instance
-                })
+    def __make_processor(self):
+        processor = CommandProcessor()
+        processor.connect(SearchTorrentController)
+        processor.connect(ControlTorrentController)
+        processor.connect(DownloadTorrentController)
+        return processor
 
     def __start_workers(self):
         for worker in self.workers:

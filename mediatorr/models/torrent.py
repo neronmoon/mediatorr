@@ -1,13 +1,8 @@
 from mediatorr.models.model import Model
-from mediatorr.utils.string import sizeof_fmt, time_fmt
-import PTN
-
+from mediatorr.models.search import TorrentSearchResult
 import json
-import uuid
 
-ID_NAMESPACE = uuid.UUID('{503cf7de-2957-4504-a4ae-60283b60c599}')
-
-TORRENT_STATE_NONE = 'UNKNOWN'
+TORRENT_STATE_UNKNOWN = 'UNKNOWN'
 TORRENT_STATE_ERROR = 'ERROR'
 TORRENT_STATE_PAUSE = 'PAUSED'
 TORRENT_STATE_CHECKING = 'CHECKING'
@@ -15,7 +10,7 @@ TORRENT_STATE_DOWNLOADING = 'DOWNLOADING'
 TORRENT_STATE_OK = 'OK'
 
 TORRENT_STATES = [
-    TORRENT_STATE_NONE,
+    TORRENT_STATE_UNKNOWN,
     TORRENT_STATE_ERROR,
     TORRENT_STATE_PAUSE,
     TORRENT_STATE_CHECKING,
@@ -23,35 +18,36 @@ TORRENT_STATES = [
     TORRENT_STATE_OK
 ]
 
-TORRENT_STATE_EMOJI = {
-    TORRENT_STATE_NONE: '',
-    TORRENT_STATE_ERROR: '🚫',
-    TORRENT_STATE_PAUSE: '⏸️',
-    TORRENT_STATE_CHECKING: '🤔',
-    TORRENT_STATE_DOWNLOADING: '🔄',
-    TORRENT_STATE_OK: '✅',
-}
-
-
 class Torrent(Model):
-    table = 'torrents'
-    keys = ['id', 'name', 'link', 'size', 'category',
-            'desc_link', 'hash', 'progress', 'eta',
-            'speed', 'state', 'seeds', 'leech']
+    _table = 'torrents'
+    _key = 'hash'
 
-    def __fill(self, **kwargs):
-        if 'state' in kwargs:
-            self.ensure_state(kwargs.get('state'))
-
-        for key in self.keys:
-            if key in kwargs:
-                self.update({key: kwargs[key]})
-
-    def ensure_state(self, state):
+    def __init__(self, **kwargs):
+        super().__init__()
+        state = kwargs.get('state')
         if state not in TORRENT_STATES:
             raise Exception("Invalid torrent state %s" % state)
+        self.update({
+            'name': kwargs.get('name'),
+            'hash': kwargs.get('hash'),
+            'progress': kwargs.get('progress'),
+            'eta': kwargs.get('eta'),
+            'speed': kwargs.get('speed'),
+            'state': state,
+            'search_id': None
+        })
 
-    def from_qbittorrent_payload(self, payload):
+    def link_search_model(self, model):
+        self.update({'search_id': model.doc_id})
+        return self
+
+    def search_model(self):
+        id = self.get('search_id')
+        if id is not None:
+            return TorrentSearchResult.fetch(doc_id=id)
+
+    @staticmethod
+    def from_qbittorrent_payload(payload):
         states_map = {
             'error': TORRENT_STATE_ERROR,
             'pausedUP': TORRENT_STATE_OK,
@@ -59,16 +55,23 @@ class Torrent(Model):
             'queuedUP': TORRENT_STATE_DOWNLOADING,
             'queuedDL': TORRENT_STATE_DOWNLOADING,
             'uploading': TORRENT_STATE_OK,
-            'stalledUP': TORRENT_STATE_OK,
+            'stalledUP': TORRENT_STATE_CHECKING,
             'checkingUP': TORRENT_STATE_CHECKING,
             'checkingDL': TORRENT_STATE_CHECKING,
             'downloading': TORRENT_STATE_DOWNLOADING,
-            'stalledDL': TORRENT_STATE_OK,
-            'metaDL': TORRENT_STATE_DOWNLOADING,
+            'stalledDL': TORRENT_STATE_CHECKING,
+            'metaDL': TORRENT_STATE_CHECKING,
+            'checkingResumeData': TORRENT_STATE_CHECKING,
+            'missingFiles': TORRENT_STATE_ERROR,
+            'forcedUP': TORRENT_STATE_OK,
+            'allocating': TORRENT_STATE_CHECKING,
+            'forceDL': TORRENT_STATE_DOWNLOADING,
+            'moving': TORRENT_STATE_CHECKING,
+            'unknown': TORRENT_STATE_UNKNOWN,
         }
-        return self.__fill(
-            id=self.get_id(),
-            name=payload.get('name'),
+        name = payload.get('name')
+        model = Torrent(
+            name=name,
             hash=payload.get('hash'),
             progress=payload.get('progress'),
             eta=payload.get('eta'),
@@ -76,49 +79,9 @@ class Torrent(Model):
             state=states_map[payload.get('state')],
         )
 
-    def from_jackett_payload(self, payload):
-        return self.__fill(
-            id=self.get_id(),
-            name=payload.get('name'),
-            link=payload.get('link'),
-            size=payload.get('size'),
-            category=payload.get('category'),
-            desc_link=payload.get('desc_link'),
-            seeds=int(payload.get('seeds')),
-            leech=int(payload.get('leech'))
-        )
-
-    def make_search_result_string(self, link_id):
-        info = PTN.parse(self.get('name'))
-        badges = []
-        if 'year' in info:
-            badges.append('[%s]' % info['year'])
-        if 'resolution' in info:
-            badges.append('[%s]' % info['resolution'])
-        if 'orig' in self.get('name').lower():
-            badges.append('[original]')
-        if ' sub' in self.get('name').lower():
-            badges.append('[SUBS]')
-        badges.append("[%s]" % sizeof_fmt(int(self.get('size').replace('B', '').strip())))
-        badges.append("[Seeds: %s]" % (self.get('seeds') + self.get('leech')))
-
-        badges_string = "" if not badges else " <b>%s</b> " % ("".join(badges))
-        return '🍿{badges}\n{name}\n{link_id}\n'.format(link_id=link_id, badges=badges_string, **self)
-
-    def make_status_string(self):
-        chunks = [
-            TORRENT_STATE_EMOJI[self.get('state')]
-        ]
-        if self.get('progress') != 1:
-            chunks.append("<b>{:.0%}</b>".format(self.get('progress')))
-        chunks.append('{0}'.format(self.get('name')))
-        if self.get('state') == TORRENT_STATE_DOWNLOADING:
-            chunks.append("<b>| %s |</b>" % sizeof_fmt(self.get('speed'), 'B/s'))
-            chunks.append(time_fmt(self.get('eta')))
-
-        return " ".join(chunks)
-
-    def get_id(self):
-        return str(uuid.uuid3(ID_NAMESPACE, json.dumps([
-            self.get('name'),
-        ])))
+        separator = "|mediatorr|"
+        if separator in name:
+            data = json.loads(name.split(separator).pop())
+            model.update({'search_id': data.get('search_id')})
+            model.doc_id = data.get('torrent_id')
+        return model

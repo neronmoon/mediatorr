@@ -1,9 +1,6 @@
 import xml.etree.ElementTree
-from http.cookiejar import CookieJar
-from urllib import request as urllib_request
 from urllib.parse import urlencode, unquote
-from mediatorr.models.torrent import Torrent
-from mediatorr.utils.file import download_file
+from mediatorr.utils.http import request
 
 
 class Jackett(object):
@@ -22,19 +19,15 @@ class Jackett(object):
         self.url = url if url[-1] != '/' else url[:-1]
         self.api_key = api_key
 
-    def download_torrent(self, download_url):
-        # fix for some indexers with magnet link inside .torrent file
-        if download_url.startswith('magnet:?'):
-            return download_url
-        response = self.get_response(download_url)
-        if response is not None and response.startswith('magnet:?'):
-            return download_url
-        else:
-            return download_file(download_url)
-
     def search(self, what, cat='all'):
-        what = unquote(what)
+        if isinstance(cat, list):
+            result = []
+            for c in cat:
+                result += self.search(what, c)
+            return result
+
         category = self.supported_categories[cat.lower()]
+        what = unquote(what)
 
         # prepare jackett url
         params = [
@@ -45,7 +38,7 @@ class Jackett(object):
             params.append(('cat', ','.join(category)))
         params = urlencode(params)
         jacket_url = self.url + "/api/v2.0/indexers/all/results/torznab/api?%s" % params
-        response = self.get_response(jacket_url)
+        response = request(jacket_url)
         if response is None:
             raise Exception("Jackett connection error")
 
@@ -96,25 +89,7 @@ class Jackett(object):
             res['engine_url'] = self.url
             res['category'] = cat
             search_result.append(res)
-        models = []
-        for result in search_result:
-            model = Torrent()
-            model.from_jackett_payload(result)
-            models.append(model)
-        return models
+        return search_result
 
     def generate_xpath(self, tag):
         return './{http://torznab.com/schemas/2015/feed}attr[@name="%s"]' % tag
-
-    def get_response(self, query):
-        response = None
-        try:
-            opener = urllib_request.build_opener(urllib_request.HTTPCookieProcessor(CookieJar()))
-            response = opener.open(query).read().decode('utf-8')
-        except urllib_request.HTTPError as e:
-            # if the page returns a magnet redirect, used in download_torrent
-            if e.code == 302:
-                response = e.url
-        except Exception:
-            pass
-        return response
