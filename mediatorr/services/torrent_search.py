@@ -24,12 +24,13 @@ class TorrentSearchService:
             models = []
             for result in results:
                 models.append(TorrentSearchResult.from_jackett_payload(result, query).save())
-            queries_table.upsert({
+            query_id = queries_table.upsert({
                 'text': query,
                 'time': int(time.time()),
                 'models': list(map(lambda x: x.doc_id, models))
-            }, Query().text == query)
-            return models
+            }, Query().text == query).pop()
+            return models, query_id
         else:
-            return list(map(lambda doc_id: TorrentSearchResult.fetch(doc_id=doc_id), query_model.get('models')))
+            query_id = query_model.doc_id
+            return list(map(lambda doc_id: TorrentSearchResult.fetch(doc_id=doc_id), query_model.get('models'))), query_id
 

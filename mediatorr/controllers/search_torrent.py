@@ -7,7 +7,7 @@ from telebot.types import InlineKeyboardButton
 
 
 class SearchTorrentController(Controller):
-    patterns = [r"^(?P<text>[^/].*)", r'^/search_(?P<text>.*)_page_(?P<page>\d+)$']
+    patterns = [r"^(?P<text>[^/].*)", r'^/s_(?P<query_id>.*)_p_(?P<page>\d+)$']
 
     search_service = inject.attr('search_service')
     db = inject.attr('db')
@@ -15,19 +15,22 @@ class SearchTorrentController(Controller):
 
     def __init__(self, params):
         self.page = int(params.get('page', 1))
-        self.text = params.get('text')
+        if 'query_id' in params:
+            self.text = self.db.table('search_queries').get(doc_id=int(params.get('query_id'))).get('text')
+        else:
+            self.text = params.get('text')
 
     def handle(self, message):
-        results = self.search_service.search(self.text)
+        results, query_id = self.search_service.search(self.text)
         paginated = paginate(
-            '/search_%s_page_{page}' % self.text,
+            '/s_%s_p_{page}' % query_id,
             list(map(self.render, results)),
             self.page
         )
         follow_btn = InlineKeyboardButton(
             text='Trigger notifications',
             callback_data=json.dumps({
-                'path': '/follow_search_%s' % self.text
+                'path': '/fs%s' % query_id
             })
         )
         paginated.get('reply_markup').row(follow_btn)

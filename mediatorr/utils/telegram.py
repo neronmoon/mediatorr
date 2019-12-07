@@ -97,5 +97,6 @@ def keyboard(pattern, page, pages_count, buttons_count=5):
         ) for key in sorted(buttons.keys())
     ]
     markup = InlineKeyboardMarkup()
-    markup.row(*button_row)
+    if len(button_row) > 1:
+        markup.row(*button_row)
     return markup
