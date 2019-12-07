@@ -1,8 +1,9 @@
-import inject
+import inject, json
 import PTN
 from mediatorr.utils.telegram import paginate
 from mediatorr.utils.string import sizeof_fmt
 from mediatorr.controllers.controller import Controller
+from telebot.types import InlineKeyboardButton
 
 
 class SearchTorrentController(Controller):
@@ -23,6 +24,13 @@ class SearchTorrentController(Controller):
             list(map(self.render, results)),
             self.page
         )
+        follow_btn = InlineKeyboardButton(
+            text='Trigger notifications',
+            callback_data=json.dumps({
+                'path': '/follow_search_%s' % self.text
+            })
+        )
+        paginated.get('reply_markup').row(follow_btn)
         self.update_message(**paginated)
 
     def render(self, item):

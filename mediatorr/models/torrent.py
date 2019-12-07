@@ -18,6 +18,7 @@ TORRENT_STATES = [
     TORRENT_STATE_OK
 ]
 
+
 class Torrent(Model):
     _table = 'torrents'
     _key = 'hash'

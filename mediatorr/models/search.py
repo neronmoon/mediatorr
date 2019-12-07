@@ -1,4 +1,3 @@
-import time
 from mediatorr.models.model import Model
 
 
