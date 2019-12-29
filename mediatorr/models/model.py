@@ -14,9 +14,10 @@ class Model(dict):
     @classmethod
     def fetch(cls, cond=None, doc_id=None):
         document = cls.__get_table().get(cond=cond, doc_id=doc_id)
-        instance = cls(**document)
-        instance.doc_id = document.doc_id
-        return instance
+        if document is not None:
+            instance = cls(**document)
+            instance.doc_id = document.doc_id
+            return instance
 
     @classmethod
     def search(cls, cond):

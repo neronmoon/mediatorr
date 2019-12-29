@@ -56,7 +56,7 @@ class Torrent(Model):
             'queuedUP': TORRENT_STATE_DOWNLOADING,
             'queuedDL': TORRENT_STATE_DOWNLOADING,
             'uploading': TORRENT_STATE_OK,
-            'stalledUP': TORRENT_STATE_CHECKING,
+            'stalledUP': TORRENT_STATE_OK,
             'checkingUP': TORRENT_STATE_CHECKING,
             'checkingDL': TORRENT_STATE_CHECKING,
             'downloading': TORRENT_STATE_DOWNLOADING,

@@ -2,6 +2,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from mediatorr.utils.string import sizeof_fmt, time_fmt
 from mediatorr.models.torrent import *
 import json
+import PTN
 
 TORRENT_STATE_EMOJI = {
     TORRENT_STATE_UNKNOWN: '👽',
@@ -24,7 +25,7 @@ def detail_view(model):
     markup.row(*row)
     markup.row(InlineKeyboardButton('Delete', callback_data=json.dumps({'path': '/delete%s' % model.doc_id})))
     return {
-        'text': status_line(model),
+        'text': status_line(model, details=False),
         'reply_markup': markup
     }
 
@@ -47,7 +48,7 @@ def list_view(models):
     }
 
 
-def status_line(model, links=True, progress=True):
+def status_line(model, links=True, details=True, progress=True):
     chunks = [
         TORRENT_STATE_EMOJI[model.get('state')]
     ]
@@ -59,7 +60,8 @@ def status_line(model, links=True, progress=True):
         chunks.append("<b>| %s |</b>" % sizeof_fmt(model.get('speed'), 'B/s'))
         chunks.append(time_fmt(model.get('eta')))
     if links:
-        chunks.append("\n/details%s " % model.doc_id)
+        if details:
+            chunks.append("\n/details%s " % model.doc_id)
         if model.get('state') in [TORRENT_STATE_DOWNLOADING, TORRENT_STATE_CHECKING]:
             chunks.append("/pause%s " % model.doc_id)
         elif model.get('state') not in [TORRENT_STATE_OK, TORRENT_STATE_ERROR, TORRENT_STATE_UNKNOWN]:
@@ -67,3 +69,21 @@ def status_line(model, links=True, progress=True):
         chunks.append("/delete%s" % model.doc_id)
 
     return " ".join(chunks)
+
+
+def search_line(item):
+    info = PTN.parse(item.get('name'))
+    badges = []
+    if 'year' in info:
+        badges.append('[%s]' % info['year'])
+    if 'resolution' in info:
+        badges.append('[%s]' % info['resolution'])
+    if 'orig' in item.get('name').lower():
+        badges.append('[original]')
+    if ' sub' in item.get('name').lower():
+        badges.append('[SUBS]')
+    badges.append("[%s]" % sizeof_fmt(item.get('size')))
+    badges.append("[Seeds: %s]" % (item.get('seeds') + item.get('leech')))
+
+    badges_string = "" if not badges else " <b>%s</b> " % ("".join(badges))
+    return '🍿{badges}\n{name}\n/download{link_id}\n'.format(link_id=item.doc_id, badges=badges_string, **item)
