@@ -19,7 +19,7 @@ class NotifyOnDownloadCompleteWorker(Worker):
         for torrent in torrents:
             hash = torrent.get('hash')
             state = torrent.get('state')
-            states_filter = [TORRENT_STATE_OK, TORRENT_STATE_DOWNLOADING]
+            states_filter = [TORRENT_STATE_OK]
             if state in states_filter:
                 if hash in self.state and state != self.state[hash]:
                     self._notify(state, torrent)
