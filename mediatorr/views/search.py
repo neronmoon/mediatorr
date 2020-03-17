@@ -15,7 +15,7 @@ def search_view(query_model, results, chat_id, page=1):
     ids = list(map(lambda x: x[TORRENT_SEARCH_RESULT_ID_KEY], torrents))
 
     search_lines = []
-    for result in sorted(results,key=lambda x: x.seeds + x.leech, reverse=True):
+    for result in sorted(results, key=lambda x: x.seeds + x.leech, reverse=True):
         search_lines.append(search_line(result, result.id in ids))
 
     paginated = paginate('/search_results_paginate_%s_{page}' % query_model.id, search_lines, page)
