@@ -1,6 +1,8 @@
+import inject
 from telebot.types import InlineKeyboardButton
 
 from mediatorr.models.following import FollowSearch
+from mediatorr.models.torrent import TORRENT_SEARCH_RESULT_ID_KEY
 from mediatorr.utils.string import sizeof_fmt
 import json
 import PTN
@@ -9,11 +11,14 @@ from mediatorr.utils.telegram import paginate
 
 
 def search_view(query_model, results, chat_id, page=1):
-    paginated = paginate(
-        '/search_results_paginate_%s_{page}' % query_model.id,
-        list(map(search_line, results)),
-        page
-    )
+    torrents = inject.instance('torrent_service').list()
+    ids = list(map(lambda x: x[TORRENT_SEARCH_RESULT_ID_KEY], torrents))
+
+    search_lines = []
+    for result in results:
+        search_lines.append(search_line(result, result.id in ids))
+
+    paginated = paginate('/search_results_paginate_%s_{page}' % query_model.id, search_lines, page)
     paginated['parse_mode'] = 'html'
     paginated.get('reply_markup').row(follow_button(chat_id, query_model, page=page))
     return paginated
@@ -28,9 +33,11 @@ def follow_button(chat_id, query_model, page=1):
         callback_data=json.dumps({'path': '/%s%s %s' % (next_action_pattern, query_model.id, page)}))
 
 
-def search_line(result_model):
+def search_line(result_model, is_already_added=False):
     info = PTN.parse(result_model.title)
     badges = []
+    if is_already_added:
+        badges.append("🔥🔥🔥")
     if 'year' in info:
         badges.append('[%s]' % info['year'])
     if 'resolution' in info:
@@ -43,5 +50,6 @@ def search_line(result_model):
     badges.append("[Seeds: %s]" % (result_model.seeds + result_model.leech))
 
     badges_string = "" if not badges else " <b>%s</b> " % ("".join(badges))
+
     return '🍿{badges}\n{title}\n/download{link_id}\n'.format(
         link_id=result_model.id, badges=badges_string, title=result_model.title)
