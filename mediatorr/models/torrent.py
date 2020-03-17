@@ -1,6 +1,9 @@
-from mediatorr.models.model import Model
-from mediatorr.models.search import TorrentSearchResult
 import json
+
+from mediatorr.models.search import SearchResult
+
+TORRENT_NAME_SEPARATOR = '|mediatorr|'
+TORRENT_SEARCH_RESULT_ID_KEY = 'search_id'
 
 TORRENT_STATE_UNKNOWN = 'UNKNOWN'
 TORRENT_STATE_ERROR = 'ERROR'
@@ -19,33 +22,26 @@ TORRENT_STATES = [
 ]
 
 
-class Torrent(Model):
-    _table = 'torrents'
-    _key = 'hash'
-
+class TorrentDto(dict):
     def __init__(self, **kwargs):
         super().__init__()
         state = kwargs.get('state')
         if state not in TORRENT_STATES:
             raise Exception("Invalid torrent state %s" % state)
         self.update({
-            'name': kwargs.get('name'),
+            'title': kwargs.get('title'),
             'hash': kwargs.get('hash'),
             'progress': kwargs.get('progress'),
             'eta': kwargs.get('eta'),
             'speed': kwargs.get('speed'),
             'state': state,
-            'search_id': None
+            TORRENT_SEARCH_RESULT_ID_KEY: None
         })
 
-    def link_search_model(self, model):
-        self.update({'search_id': model.doc_id})
-        return self
-
     def search_model(self):
-        id = self.get('search_id')
-        if id is not None:
-            return TorrentSearchResult.fetch(doc_id=id)
+        model_id = self.get(TORRENT_SEARCH_RESULT_ID_KEY)
+        if model_id:
+            return SearchResult.get_or_none(id=model_id)
 
     @staticmethod
     def from_qbittorrent_payload(payload):
@@ -70,9 +66,9 @@ class Torrent(Model):
             'moving': TORRENT_STATE_CHECKING,
             'unknown': TORRENT_STATE_UNKNOWN,
         }
-        name = payload.get('name')
-        model = Torrent(
-            name=name,
+        title = payload.get('name')
+        model = TorrentDto(
+            title=title,
             hash=payload.get('hash'),
             progress=payload.get('progress'),
             eta=payload.get('eta'),
@@ -80,9 +76,7 @@ class Torrent(Model):
             state=states_map[payload.get('state')],
         )
 
-        separator = "|mediatorr|"
-        if separator in name:
-            data = json.loads(name.split(separator).pop())
-            model.update({'search_id': data.get('search_id')})
-            model.doc_id = data.get('torrent_id')
+        if TORRENT_NAME_SEPARATOR in title:
+            data = json.loads(title.split(TORRENT_NAME_SEPARATOR).pop())
+            model.update({TORRENT_SEARCH_RESULT_ID_KEY: data.get(TORRENT_SEARCH_RESULT_ID_KEY)})
         return model

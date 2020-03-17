@@ -7,4 +7,6 @@ urllib3==1.24.3
 git+https://github.com/rmartin16/qbittorrent-api.git@08c1815#egg=qbittorrent-api
 simplejson
 parse-torrent-name
-tinydb
+peewee
+pymysql
+sentry-sdk==0.14.2

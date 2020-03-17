@@ -25,7 +25,8 @@ class LiveMessage:
 
     def stop(self):
         self.live_update = False
-        self.live_thread.join(self.live_update_timeout)
+        if threading.current_thread().ident != self.live_thread.ident:
+            self.live_thread.join(self.live_update_timeout)
 
     def update(self):
         while self.live_update:

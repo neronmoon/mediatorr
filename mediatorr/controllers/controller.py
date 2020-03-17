@@ -1,4 +1,4 @@
-import inject, logging, time, threading
+import inject, logging, time, multiprocessing
 
 
 class Controller:
@@ -40,7 +40,7 @@ class Controller:
             time.sleep(timeout)
             self.bot.delete_message(chat_id, message_id)
 
-        thread = threading.Thread(target=worker)
+        thread = multiprocessing.Process(target=worker)
         thread.start()
 
     def handle(self, message):

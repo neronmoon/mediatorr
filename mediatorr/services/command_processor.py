@@ -1,5 +1,6 @@
 import json
 import re
+import logging
 
 IS_CALLBACK = 'is_callback'
 
@@ -13,12 +14,14 @@ class CommandProcessor:
 
     def process_message(self, message):
         match_data = self.__resolve(message.text)
-        self.next(match_data.get('target'), match_data.get('info'), message)
+        if match_data:
+            self.next(match_data.get('target'), match_data.get('info'), message)
 
     def process_callback(self, callback):
         data = json.loads(callback.data)
         match_data = self.__resolve(data.get('path'))
-        self.next(match_data.get('target'), match_data.get('info'), callback.message, is_callback=True)
+        if match_data:
+            self.next(match_data.get('target'), match_data.get('info'), callback.message, is_callback=True)
 
     def process_file(self, message):
         caption = message.document.caption
@@ -39,4 +42,4 @@ class CommandProcessor:
                         'path': path,
                         'info': match.groupdict()
                     }
-        raise Exception("No match for `%s`" % path)
+        logging.warning("No match for `%s`" % path, exc_info=True)

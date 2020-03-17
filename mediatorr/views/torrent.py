@@ -14,76 +14,77 @@ TORRENT_STATE_EMOJI = {
 }
 
 
-def detail_view(model):
+def detail_view(torrent_dto):
     row = []
-    if model.get('state') == TORRENT_STATE_DOWNLOADING:
-        row.append(InlineKeyboardButton('Pause', callback_data=json.dumps({'path': '/pause%s' % model.doc_id})))
-    if model.get('state') == TORRENT_STATE_PAUSE:
-        row.append(InlineKeyboardButton('Resume', callback_data=json.dumps({'path': '/resume%s' % model.doc_id})))
-    row.append(InlineKeyboardButton('Follow', callback_data=json.dumps({'path': '/follow%s' % model.doc_id})))
+    model_id = torrent_dto.get('search_id')
+    if torrent_dto.get('state') == TORRENT_STATE_DOWNLOADING:
+        row.append(InlineKeyboardButton('Pause', callback_data=json.dumps({'path': '/pause%s' % model_id})))
+    if torrent_dto.get('state') == TORRENT_STATE_PAUSE:
+        row.append(InlineKeyboardButton('Resume', callback_data=json.dumps({'path': '/resume%s' % model_id})))
     markup = InlineKeyboardMarkup()
     markup.row(*row)
-    markup.row(InlineKeyboardButton('Delete', callback_data=json.dumps({'path': '/delete%s' % model.doc_id})))
+    markup.row(InlineKeyboardButton('Delete', callback_data=json.dumps({'path': '/delete%s' % model_id})))
     return {
-        'text': status_line(model, details=False),
+        'text': status_line(torrent_dto, links=False, details=False),
         'reply_markup': markup
     }
 
 
-def list_view(models):
-    models.sort(key=lambda x: x.get('state'))
+def list_view(torrent_dto):
+    torrent_dto.sort(key=lambda x: x.get('state'))
     row = []
-    if any([x for x in models if x.get('state') == TORRENT_STATE_DOWNLOADING]):
+    if any([x for x in torrent_dto if x.get('state') == TORRENT_STATE_DOWNLOADING]):
         row.append(InlineKeyboardButton('Pause All', callback_data=json.dumps({'path': '/pauseall'})))
 
-    if any([x for x in models if x.get('state') == TORRENT_STATE_PAUSE]):
+    if any([x for x in torrent_dto if x.get('state') == TORRENT_STATE_PAUSE]):
         row.append(InlineKeyboardButton('Resume All', callback_data=json.dumps({'path': '/startall'})))
 
     markup = InlineKeyboardMarkup()
     markup.row(*row)
 
     return {
-        'text': '\n\n'.join((list(map(status_line, models)))),
+        'text': '\n\n'.join(list(map(status_line, torrent_dto))),
         'reply_markup': markup
     }
 
 
-def status_line(model, links=True, details=True, progress=True):
+def status_line(torrent_dto, links=True, details=True, progress=True):
+    model_id = torrent_dto.get('search_id')
     chunks = [
-        TORRENT_STATE_EMOJI[model.get('state')]
+        TORRENT_STATE_EMOJI[torrent_dto.get('state')]
     ]
-    if progress and model.get('progress') != 1:
-        chunks.append("<b>{:.0%}</b>".format(model.get('progress')))
-    search_model = model.search_model()
-    chunks.append(search_model.get('name') if search_model is not None else model.get('name'))
-    if progress and model.get('state') == TORRENT_STATE_DOWNLOADING:
-        chunks.append("<b>| %s |</b>" % sizeof_fmt(model.get('speed'), 'B/s'))
-        chunks.append(time_fmt(model.get('eta')))
-    if links:
+    if progress and torrent_dto.get('progress') != 1:
+        chunks.append("<b>{:.0%}</b>".format(torrent_dto.get('progress')))
+    search_model = torrent_dto.search_model()
+    chunks.append(search_model.title if search_model is not None else torrent_dto.get('title'))
+    if progress and torrent_dto.get('state') == TORRENT_STATE_DOWNLOADING:
+        chunks.append("<b>| %s |</b>" % sizeof_fmt(torrent_dto.get('speed'), 'B/s'))
+        chunks.append(time_fmt(torrent_dto.get('eta')))
+    if links and model_id:
         if details:
-            chunks.append("\n/details%s " % model.doc_id)
-        if model.get('state') in [TORRENT_STATE_DOWNLOADING, TORRENT_STATE_CHECKING]:
-            chunks.append("/pause%s " % model.doc_id)
-        elif model.get('state') not in [TORRENT_STATE_OK, TORRENT_STATE_ERROR, TORRENT_STATE_UNKNOWN]:
-            chunks.append("/resume%s " % model.doc_id)
-        chunks.append("/delete%s" % model.doc_id)
+            chunks.append("\n/details%s " % model_id)
+        if torrent_dto.get('state') in [TORRENT_STATE_DOWNLOADING, TORRENT_STATE_CHECKING]:
+            chunks.append("/pause%s " % model_id)
+        elif torrent_dto.get('state') not in [TORRENT_STATE_OK, TORRENT_STATE_ERROR, TORRENT_STATE_UNKNOWN]:
+            chunks.append("/resume%s " % model_id)
+        chunks.append("/delete%s" % model_id)
 
     return " ".join(chunks)
 
 
-def search_line(item):
-    info = PTN.parse(item.get('name'))
+def search_line(result_model):
+    info = PTN.parse(result_model.title)
     badges = []
     if 'year' in info:
         badges.append('[%s]' % info['year'])
     if 'resolution' in info:
         badges.append('[%s]' % info['resolution'])
-    if 'orig' in item.get('name').lower():
+    if 'orig' in result_model.title:
         badges.append('[original]')
-    if ' sub' in item.get('name').lower():
+    if ' sub' in result_model.title:
         badges.append('[SUBS]')
-    badges.append("[%s]" % sizeof_fmt(item.get('size')))
-    badges.append("[Seeds: %s]" % (item.get('seeds') + item.get('leech')))
+    badges.append("[%s]" % sizeof_fmt(result_model.size))
+    badges.append("[Seeds: %s]" % (result_model.seeds + result_model.leech))
 
     badges_string = "" if not badges else " <b>%s</b> " % ("".join(badges))
-    return '🍿{badges}\n{name}\n/download{link_id}\n'.format(link_id=item.doc_id, badges=badges_string, **item)
+    return '🍿{badges}\n{title}\n/download{link_id}\n'.format(link_id=result_model.id, badges=badges_string, title=result_model.title)

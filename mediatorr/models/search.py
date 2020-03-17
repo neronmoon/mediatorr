@@ -1,38 +1,31 @@
-from mediatorr.models.model import Model
+from peewee import DateTimeField, CharField, SQL, IntegerField, TextField, BigIntegerField, ForeignKeyField
+
+from mediatorr.models.model import BaseModel
 
 
-class TorrentSearchResult(Model):
-    _table = 'search_results'
-    _key = 'desc_link'
+class SearchQuery(BaseModel):
+    query = CharField(unique=True)
+    last_search_at = DateTimeField(constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')])
 
-    def __init__(self, **kwargs):
-        super().__init__()
-        self.update({
-            'query': kwargs.get('query'),
-            'name': kwargs.get('name'),
-            'link': kwargs.get('link'),
-            'size': kwargs.get('size'),
-            'category': kwargs.get('category'),
-            'desc_link': kwargs.get('desc_link'),
-            'seeds': int(kwargs.get('seeds')),
-            'leech': int(kwargs.get('leech')),
-            'found_at': kwargs.get('time.time()'),
-            'torrent_id': None
-        })
 
-    def link_torrent_model(self, model):
-        self.update({'torrent_id': model.doc_id})
-        return self
+class SearchResult(BaseModel):
+    title = CharField(max_length=400)
+    download_link = TextField()
+    size = BigIntegerField()
+    source_link = TextField()
+    seeds = IntegerField()
+    leech = IntegerField()
+    category = CharField()
+    query = ForeignKeyField(SearchQuery, backref='results')
 
     @staticmethod
-    def from_jackett_payload(payload, query):
-        return TorrentSearchResult(
-            query=query,
-            name=payload.get('name').strip(),
-            link=payload.get('link'),
-            size=int(payload.get('size').replace(' B', '').strip()),
-            category=payload.get('category'),
-            desc_link=payload.get('desc_link'),
-            seeds=int(payload.get('seeds')),
-            leech=int(payload.get('leech'))
-        )
+    def from_jackett_payload(payload):
+        model = SearchResult()
+        model.title = payload.get('name').strip()
+        model.download_link = payload.get('link')
+        model.size = int(payload.get('size').replace(' B', '').strip())
+        model.source_link = payload.get('desc_link')
+        model.seeds = int(payload.get('seeds'))
+        model.leech = int(payload.get('leech'))
+        model.category = payload.get('category')
+        return model

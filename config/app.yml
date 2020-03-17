@@ -2,7 +2,14 @@ logging:
   level: INFO
 
 db:
-  path: db/database.db
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: root
+  name: mediatorr
+
+sentry:
+  dsn: https://9dbb8eeabf57429ca58e5e327b86d0f5@sentry.io/5009268
 
 telegram:
   token: 965672840:AAEPqMkejPuGmTBPkEn6uHz5wQi5SQfI1LQ
