@@ -48,8 +48,9 @@ class Configurator:
         inject.clear_and_configure(configurator)
 
     def __make_db(self, cfg):
-        database_config = cfg.get('db')
-        db = MySQLDatabase(database_config.pop('name'), **database_config)
+        db = SqliteDatabase(cfg.get('db').get('path'), pragmas={
+            'journal_mode': 'wal',
+            'cache_size': -1024 * 64})
         from mediatorr.models.model import database_proxy
         database_proxy.initialize(db)
         return db

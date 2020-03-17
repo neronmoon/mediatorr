@@ -2,11 +2,7 @@ logging:
   level: INFO
 
 db:
-  host: mysql
-  port: 3306
-  user: mediatorr
-  password: mediatorr
-  name: mediatorr
+  path: db/database.db
 
 sentry:
   dsn: https://9dbb8eeabf57429ca58e5e327b86d0f5@sentry.io/5009268
