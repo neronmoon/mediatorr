@@ -2,10 +2,10 @@ logging:
   level: INFO
 
 db:
-  host: 127.0.0.1
+  host: mysql
   port: 3306
-  user: root
-  password: root
+  user: mediatorr
+  password: mediatorr
   name: mediatorr
 
 sentry:
