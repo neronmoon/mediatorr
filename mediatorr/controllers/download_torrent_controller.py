@@ -20,7 +20,7 @@ class DownloadTorrentController(Controller):
     def __init__(self, params):
         self.search_result = SearchResult.get_by_id(params.get('search_id'))
 
-    def handle(self, message):
+    def handle(self, message, **kwargs):
         self.torrent_service.download(self.search_result)
         if self.live_message is not None:
             self.live_message.stop()

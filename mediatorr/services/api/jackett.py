@@ -45,7 +45,11 @@ class Jackett(object):
         # process search results
         response_xml = xml.etree.ElementTree.fromstring(response)
         search_result = []
-        for result in response_xml.find('channel').findall('item'):
+        try:
+            items = response_xml.find('channel').findall('item')
+        except AttributeError:
+            raise Exception("Jackett error: %s" % response_xml.attrib.get('description'))
+        for result in items:
             res = {}
             title = result.find('title')
             if title is not None:

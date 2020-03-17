@@ -31,5 +31,5 @@ qbittorrent:
   password: 5588898
 
 jackett:
-  url: http://jackett:9117
-  token: 8k4rlplcixexjygofuajo6849lrbeo4e
+  url: http://ip.krasnoperov.tk:9117
+  token: ucuegplk17nl8ls59cclgozil5azooev

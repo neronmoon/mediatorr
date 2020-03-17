@@ -1,4 +1,4 @@
-import inject, logging, time, multiprocessing
+import inject, logging, time, threading
 
 
 class Controller:
@@ -26,22 +26,23 @@ class Controller:
         else:
             self.message = self.bot.reply_to(message, "🤔 Processing..")
         try:
-            self.handle(self.message)
-            if not self.__was_updated:
+            self.handle(self.message, is_callback=is_callback)
+            if not self.__was_updated and not is_callback:
                 self.update_message(text="✅ OK!")
+                self.__delay_remove_message(self.message)
         except Exception as e:
             self.bot.delete_message(self.message.chat.id, self.message.message_id)
             self.bot.reply_to(message, "🚫" + repr(e))
             logging.error(e, exc_info=True)
             raise e
 
-    def __delay_remove_message(self, chat_id, message_id, timeout=1):
+    def __delay_remove_message(self, message, timeout=1):
         def worker():
             time.sleep(timeout)
-            self.bot.delete_message(chat_id, message_id)
+            self.bot.delete_message(message.chat.id, self.message.message_id)
 
-        thread = multiprocessing.Process(target=worker)
+        thread = threading.Thread(target=worker)
         thread.start()
 
-    def handle(self, message):
+    def handle(self, message, **kwargs):
         pass

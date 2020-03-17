@@ -4,7 +4,6 @@ from peewee import *
 import logging
 import sentry_sdk
 import mediatorr.config as config
-from mediatorr.controllers.follow_search_controller import FollowSearchController
 from mediatorr.services.command_processor import CommandProcessor
 from mediatorr.controllers.search_torrent_controller import *
 from mediatorr.controllers.control_torrent_controller import *
@@ -67,7 +66,6 @@ class Configurator:
         processor.connect(SearchTorrentController)
         processor.connect(ControlTorrentController)
         processor.connect(DownloadTorrentController)
-        processor.connect(FollowSearchController)
         return processor
 
     def __make_bot(self, config, processor):

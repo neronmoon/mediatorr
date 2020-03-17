@@ -23,7 +23,7 @@ class ControlTorrentController(Controller):
         if self.torrent_id is not None:
             self.torrent_id = int(self.torrent_id)
 
-    def handle(self, message):
+    def handle(self, message, **kwargs):
         if self.action == 'details':
             if self.details_message is not None:
                 self.details_message.stop()
