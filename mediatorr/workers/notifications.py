@@ -66,7 +66,7 @@ class FollowNotificationsWorker(Worker):
 
     def tick(self):
         for model in FollowSearch.select().group_by(FollowSearch.query).execute():
-            logging.info("[FollowNotificationsWorker] Searching for `%s`" % model.query)
+            logging.info("[FollowNotificationsWorker] Searching for `%s`" % model.query.query)
             updates = []
 
             old_results = SearchResult.select().where(SearchResult.query == model.query).execute()
