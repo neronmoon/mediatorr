@@ -5,6 +5,7 @@ from mediatorr.workers.worker import Worker
 from mediatorr.models.torrent import *
 from mediatorr.views.torrent import status_line
 import inject
+import logging
 
 
 class NotifyOnDownloadCompleteWorker(Worker):
@@ -64,8 +65,8 @@ class FollowNotificationsWorker(Worker):
     search_service = inject.attr('search_service')
 
     def tick(self):
-
         for model in FollowSearch.select().group_by(FollowSearch.query).execute():
+            logging.info("[FollowNotificationsWorker] Searching for `%s`" % model.query)
             updates = []
 
             old_results = SearchResult.select().where(SearchResult.query == model.query).execute()
@@ -80,9 +81,12 @@ class FollowNotificationsWorker(Worker):
                     if item.size != old_item.size:
                         updates.append(item)
             if updates:
+                logging.info("[FollowNotificationsWorker] Found updates! Sending message")
                 msg_params = search_view(query_model, updates, model.chat_id)
                 greeting_text = "<b>🔥🔥🔥 Here is updates for `%s` query! 🔥🔥🔥</b>" % query_model.query
                 items_text = msg_params['text']
                 del msg_params['text']
                 message = self.bot.send_message(model.chat_id, greeting_text, parse_mode='html')
                 self.bot.reply_to(message, items_text, **msg_params)
+            else:
+                logging.info("[FollowNotificationsWorker] Updates not found!")
