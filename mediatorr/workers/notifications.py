@@ -36,7 +36,7 @@ class NotifyOnDownloadCompleteWorker(Worker):
             text="%s is now <b>%s</b>!\n /details%s" % (
                 status_line(torrent, links=False, progress=False),
                 state,
-                torrent.doc_id
+                torrent.search_model_id()
             ),
             parse_mode='html'
         )

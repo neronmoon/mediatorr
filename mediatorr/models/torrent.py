@@ -38,8 +38,11 @@ class TorrentDto(dict):
             TORRENT_SEARCH_RESULT_ID_KEY: None
         })
 
+    def search_model_id(self):
+        return self.get(TORRENT_SEARCH_RESULT_ID_KEY)
+
     def search_model(self):
-        model_id = self.get(TORRENT_SEARCH_RESULT_ID_KEY)
+        model_id = self.search_model_id()
         if model_id:
             return SearchResult.get_or_none(id=model_id)
 
