@@ -29,7 +29,6 @@ class Controller:
             self.handle(self.message, is_callback=is_callback)
             if not self.__was_updated and not is_callback:
                 self.update_message(text="✅ OK!")
-                self.__delay_remove_message(self.message)
         except Exception as e:
             self.bot.delete_message(self.message.chat.id, self.message.message_id)
             self.bot.reply_to(message, "🚫" + repr(e))

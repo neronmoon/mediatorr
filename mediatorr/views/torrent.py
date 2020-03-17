@@ -2,7 +2,6 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from mediatorr.utils.string import sizeof_fmt, time_fmt
 from mediatorr.models.torrent import *
 import json
-import PTN
 
 TORRENT_STATE_EMOJI = {
     TORRENT_STATE_UNKNOWN: '👽',
@@ -70,21 +69,3 @@ def status_line(torrent_dto, links=True, details=True, progress=True):
         chunks.append("/delete%s" % model_id)
 
     return " ".join(chunks)
-
-
-def search_line(result_model):
-    info = PTN.parse(result_model.title)
-    badges = []
-    if 'year' in info:
-        badges.append('[%s]' % info['year'])
-    if 'resolution' in info:
-        badges.append('[%s]' % info['resolution'])
-    if 'orig' in result_model.title:
-        badges.append('[original]')
-    if ' sub' in result_model.title:
-        badges.append('[SUBS]')
-    badges.append("[%s]" % sizeof_fmt(result_model.size))
-    badges.append("[Seeds: %s]" % (result_model.seeds + result_model.leech))
-
-    badges_string = "" if not badges else " <b>%s</b> " % ("".join(badges))
-    return '🍿{badges}\n{title}\n/download{link_id}\n'.format(link_id=result_model.id, badges=badges_string, title=result_model.title)

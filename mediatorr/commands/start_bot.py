@@ -1,7 +1,8 @@
 import inject
 import logging
 
-from mediatorr.workers.notifications import NotifyOnDownloadCompleteWorker, StartupNotificationWorker
+from mediatorr.workers.notifications import NotifyOnDownloadCompleteWorker, StartupNotificationWorker, \
+    FollowNotificationsWorker
 
 
 class StartBotCommand:
@@ -11,7 +12,8 @@ class StartBotCommand:
 
     def __init__(self):
         self.workers = [
-            # NotifyOnDownloadCompleteWorker,
+            NotifyOnDownloadCompleteWorker,
+            FollowNotificationsWorker,
             StartupNotificationWorker
         ]
         self.running_workers = []

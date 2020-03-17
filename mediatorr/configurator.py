@@ -12,16 +12,9 @@ from mediatorr.services.torrent_search_service import TorrentSearchService
 from mediatorr.services.torrent_client_service import TorrentClientService
 from mediatorr.services.api.jackett import Jackett
 from qbittorrentapi import Client
-from mediatorr.workers.notifications import NotifyOnDownloadCompleteWorker, StartupNotificationWorker
 
 
 class Configurator:
-    def __init__(self):
-        self.workers = [
-            NotifyOnDownloadCompleteWorker,
-            StartupNotificationWorker
-        ]
-        self.running_workers = []
 
     def configure(self):
         self.__configure_services()

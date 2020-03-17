@@ -1,3 +1,6 @@
+from mediatorr.models.following import FollowSearch
+from mediatorr.utils.string import convert_to_seconds
+from mediatorr.views.search import search_view
 from mediatorr.workers.worker import Worker
 from mediatorr.models.torrent import *
 from mediatorr.views.torrent import status_line
@@ -52,3 +55,34 @@ class StartupNotificationWorker(Worker):
             text="🍿Mediatorr🍿 is up!"
         )
         self.stop()
+
+
+class FollowNotificationsWorker(Worker):
+    interval = convert_to_seconds('5h')
+
+    bot = inject.attr('bot')
+    search_service = inject.attr('search_service')
+
+    def tick(self):
+
+        for model in FollowSearch.select().group_by(FollowSearch.query).execute():
+            updates = []
+
+            old_results = SearchResult.select().where(SearchResult.query == model.query).execute()
+            old_hashes = list(map(lambda x: x.unique_id, old_results))
+            query_model, new_results = self.search_service.search(model.query.query)
+
+            for item in new_results:
+                if item.unique_id not in old_hashes:
+                    updates.append(item)
+                else:
+                    old_item = next(x for x in old_results if x.unique_id == item.unique_id)
+                    if item.size != old_item.size:
+                        updates.append(item)
+            if updates:
+                msg_params = search_view(query_model, updates, model.chat_id)
+                greeting_text = "<b>🔥🔥🔥 Here is updates for `%s` query! 🔥🔥🔥</b>" % query_model.query
+                items_text = msg_params['text']
+                del msg_params['text']
+                message = self.bot.send_message(model.chat_id, greeting_text, parse_mode='html')
+                self.bot.reply_to(message, items_text, **msg_params)
