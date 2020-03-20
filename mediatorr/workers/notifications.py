@@ -59,10 +59,13 @@ class StartupNotificationWorker(Worker):
 
 
 class FollowNotificationsWorker(Worker):
-    interval = convert_to_seconds('5h')
-
     bot = inject.attr('bot')
+    config = inject.attr('config')
     search_service = inject.attr('search_service')
+
+    def __init__(self):
+        super().__init__()
+        self.interval = self.config.get('notifications').get('follow_check_interval')
 
     def tick(self):
         for model in FollowSearch.select().group_by(FollowSearch.query).execute():
