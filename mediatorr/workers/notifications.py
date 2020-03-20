@@ -65,7 +65,7 @@ class FollowNotificationsWorker(Worker):
 
     def __init__(self):
         super().__init__()
-        self.interval = self.config.get('notifications').get('follow_check_interval')
+        self.interval = convert_to_seconds(self.config.get('notifications').get('follow_check_interval'))
 
     def tick(self):
         for model in FollowSearch.select().group_by(FollowSearch.query).execute():
