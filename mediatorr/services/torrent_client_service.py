@@ -1,5 +1,5 @@
 from mediatorr.models.torrent import TorrentDto, TORRENT_NAME_SEPARATOR, TORRENT_SEARCH_RESULT_ID_KEY
-import json
+import json, time
 from mediatorr.utils.file import download_file
 from mediatorr.utils.http import request
 
@@ -45,6 +45,7 @@ class TorrentClientService:
         }
         if path.startswith('magnet?:'):
             self.client.torrents_add(urls=[path], **args)
+            time.sleep(5)  # waiting for magnet resolution
         else:
             self.client.torrents_add(torrent_files=[path], **args)
 
