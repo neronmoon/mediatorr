@@ -10,6 +10,7 @@ class SearchTorrentController(Controller):
     patterns = [
         "^(?P<text>[^/].*)",
         "^/search\s+(?P<text>[^/].*)",
+        "^/s\s+(?P<text>[^/].*)",
         r'^/search_results_paginate_(?P<query_id>.*)_(?P<page>\d+)$',
         r'^/(?P<follow_state>(un)?follow)(?P<query_id>\d+)\s?(?P<page>.*)$'
     ]
