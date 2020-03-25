@@ -8,7 +8,8 @@ class Controller:
     __was_updated = False
 
     def update_message(self, count_update=True, **kwargs):
-        if 'text' in kwargs and self.message.text == kwargs.get('text'):
+        text_has_changed = 'text' in kwargs and self.message.text != kwargs.get('text')
+        if not text_has_changed and 'reply_markup' not in kwargs:
             return
         if count_update:
             self.__was_updated = True
