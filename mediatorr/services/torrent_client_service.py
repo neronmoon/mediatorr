@@ -28,8 +28,8 @@ class TorrentClientService:
     def pause_all(self):
         self.client.torrents_pause(hashes='all')
 
-    def delete(self, id):
-        self.client.torrents_delete(hashes=[self.get_model(id).get('hash')], deleteFiles=True)
+    def delete(self, id, delete_files=True):
+        self.client.torrents_delete(hashes=[self.get_model(id).get('hash')], deleteFiles=delete_files)
 
     def get_model(self, search_result_id):
         for model in self.list():
@@ -38,6 +38,8 @@ class TorrentClientService:
         return None
 
     def download(self, search_model):
+        if self.get_model(search_model.id) is not None:
+            self.delete(search_model.id, delete_files=False)
         path = self.__download_torrent_file(search_model.download_link)
         args = {
             'category': search_model.category,
