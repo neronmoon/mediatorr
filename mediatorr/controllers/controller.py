@@ -7,6 +7,9 @@ class Controller:
     message = None
     __was_updated = False
 
+    def __init__(self, params):
+        self.params = params
+
     def update_message(self, count_update=True, **kwargs):
         text_has_changed = 'text' in kwargs and self.message.text != kwargs.get('text')
         if not text_has_changed and 'reply_markup' not in kwargs:

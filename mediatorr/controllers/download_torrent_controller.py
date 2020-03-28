@@ -18,6 +18,7 @@ class DownloadTorrentController(Controller):
     live_message = None
 
     def __init__(self, params):
+        super().__init__(params)
         self.search_result = SearchResult.get_by_id(params.get('search_id'))
 
     def handle(self, message, **kwargs):

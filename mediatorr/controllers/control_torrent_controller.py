@@ -16,6 +16,7 @@ class ControlTorrentController(Controller):
     details_message = None
 
     def __init__(self, params):
+        super().__init__(params)
         self.action = params.get('action', 1)
         self.torrent_id = params.get('torrent_id', None)
         if self.torrent_id == 'all':

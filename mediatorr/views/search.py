@@ -30,7 +30,7 @@ def follow_button(chat_id, query_model, page=1):
     next_action_pattern = 'unfollow' if task is not None else 'follow'
     return InlineKeyboardButton(
         text=next_action_pattern.capitalize(),
-        callback_data=json.dumps({'path': '/%s%s %s' % (next_action_pattern, query_model.id, page)}))
+        callback_data=json.dumps({'path': '/%s%s_search_list_%s' % (next_action_pattern, query_model.id, page)}))
 
 
 def search_line(result_model, is_already_added=False):
