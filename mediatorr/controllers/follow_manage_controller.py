@@ -43,3 +43,7 @@ class FollowManageController(Controller):
             FollowSearch(**params).save()
         elif not should_follow and task is not None:
             task.delete_instance()
+        self.flash_message(
+            text="👍 You're now following `%s` query!" % query_model.query if should_follow else "😴 Unfollowed!",
+            chat_id=message.chat.id
+        )
