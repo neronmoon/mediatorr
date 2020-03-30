@@ -13,6 +13,8 @@ class NotifyOnDownloadCompleteWorker(Worker):
     bot = inject.attr('bot')
     config = inject.attr('config')
 
+    notify_states = [TORRENT_STATE_OK]
+
     state = {}
 
     def on_start(self):
@@ -23,7 +25,7 @@ class NotifyOnDownloadCompleteWorker(Worker):
         for torrent in torrents:
             hash = torrent.get('hash')
             state = torrent.get('state')
-            if state in [TORRENT_STATE_OK]:
+            if state in self.notify_states:
                 if hash in self.state and state != self.state[hash]:
                     self._notify(state, torrent)
                 elif hash not in self.state:
