@@ -1,6 +1,5 @@
 import telebot
 import tmdbsimple as tmdb
-from peewee import *
 import logging
 import sentry_sdk
 import mediatorr.config as config
@@ -13,10 +12,10 @@ from mediatorr.services.torrent_search_service import TorrentSearchService
 from mediatorr.services.torrent_client_service import TorrentClientService
 from mediatorr.services.api.jackett import Jackett
 from qbittorrentapi import Client
+from playhouse.sqliteq import SqliteQueueDatabase
 
 
 class Configurator:
-
     def configure(self):
         self.__configure_services()
 
@@ -49,9 +48,7 @@ class Configurator:
         inject.clear_and_configure(configurator)
 
     def __make_db(self, cfg):
-        db = SqliteDatabase(cfg.get('db').get('path'), pragmas={
-            'journal_mode': 'wal',
-            'cache_size': -1024 * 64})
+        db = SqliteQueueDatabase(cfg.get('db').get('path'))
         from mediatorr.models.model import database_proxy
         database_proxy.initialize(db)
         return db
