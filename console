@@ -13,7 +13,7 @@ commands = [
 
 def build_arg_parser():
     parser = argparse.ArgumentParser(description='Mediatorr')
-    subparsers = parser.add_subparsers(help='Mediatorr subcommands')
+    subparsers = parser.add_subparsers(title='Available commands', metavar='')
     for cls in commands:
         subparser = subparsers.add_parser(cls.command, help=cls.help)
         subparser.set_defaults(command_class=cls)
