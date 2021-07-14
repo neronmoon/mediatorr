@@ -1,3 +1,5 @@
+import logging
+
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 import json, threading, inject, telebot, time
 
@@ -12,6 +14,7 @@ class LiveMessage:
     def __init__(self, chat_id, update_message_handler):
         self.chat_id = chat_id
         self.update_message_handler = update_message_handler
+        self.logger = logging.getLogger('LiveMessage')
 
     def start(self):
         if self.live_thread is not None:
@@ -34,6 +37,7 @@ class LiveMessage:
                 self.update_message_handler()
             except telebot.apihelper.ApiException as e:
                 pass
+            self.logger.info('Live message update!')
             time.sleep(self.live_update_timeout)
 
 
