@@ -12,7 +12,7 @@ from mediatorr.services.torrent_search_service import TorrentSearchService
 from mediatorr.services.torrent_client_service import TorrentClientService
 from mediatorr.services.api.jackett import Jackett
 from qbittorrentapi import Client
-from playhouse.sqliteq import SqliteQueueDatabase
+from peewee import *
 
 
 class Configurator:
@@ -23,7 +23,14 @@ class Configurator:
         def configurator(binder):
             cfg = config.app
             logging_level = logging.getLevelName(cfg.get('logging', {}).get('level', 'INFO'))
-            logging.getLogger().setLevel(logging_level)
+            logger = logging.getLogger()
+            logger.setLevel(logging_level)
+
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s", "%d-%m-%Y %H:%M:%S")
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+
             telebot.logger.setLevel(logging_level)
             binder.bind('config', cfg)
             db = self.__make_db(cfg)
@@ -48,7 +55,8 @@ class Configurator:
         inject.clear_and_configure(configurator)
 
     def __make_db(self, cfg):
-        db = SqliteQueueDatabase(cfg.get('db').get('path'))
+        config = cfg.get('db')
+        db = MySQLDatabase(config.pop('name'), **config)
         from mediatorr.models.model import database_proxy
         database_proxy.initialize(db)
         return db
@@ -62,7 +70,10 @@ class Configurator:
         return processor
 
     def __make_bot(self, config, processor):
-        bot = telebot.TeleBot(config.get('telegram').get('token'))
+        bot = telebot.TeleBot(
+            config.get('telegram').get('token'),
+            threaded=True
+        )
         bot.add_message_handler({
             'function': processor.process_message,
             'filters': {'content_types': ['text']},

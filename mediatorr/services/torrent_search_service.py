@@ -1,17 +1,20 @@
 import datetime
 
 from mediatorr.models.search import SearchResult, SearchQuery
-import functools
+
+import logging
+import cachetools.func
 
 
 class TorrentSearchService:
-
     def __init__(self, db, api):
         self.db = db
         self.jackett = api
+        self.logger = logging.getLogger('TorrentSearchService')
 
-    @functools.lru_cache()
+    @cachetools.func.ttl_cache(ttl=10 * 60)
     def search(self, query, categories=['movies', 'tv']):
+        self.logger.info(f"Searcing for `{query}`")
         query_text = query.lower()
         query_model, created = SearchQuery.get_or_create(
             query=query_text,

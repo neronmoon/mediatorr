@@ -9,4 +9,6 @@ simplejson
 parse-torrent-name
 peewee
 pymysql
-sentry-sdk==0.14.2
+python-dotenv
+sentry_sdk==0.14.2
+cachetools

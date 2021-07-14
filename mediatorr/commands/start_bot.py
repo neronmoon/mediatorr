@@ -26,7 +26,7 @@ class StartBotCommand:
         logging.info("Starting workers!")
         self.__start_workers()
         logging.info("Bot is running!")
-        self.bot.polling()
+        self.bot.infinity_polling()
 
         for worker in self.running_workers:
             worker.stop()
