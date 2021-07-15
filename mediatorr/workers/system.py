@@ -24,15 +24,15 @@ class NotifyLowMemoryWorker(Worker):
 
     def tick(self):
         hdd = psutil.disk_usage('/')
-
-        is_now_ok = hdd.free / hdd.total <= 0.1
+        is_now_ok = hdd.free / hdd.total > 0.1
         if self.__is_ok != is_now_ok:
             self.__is_ok = is_now_ok
             self.bot.send_message(
                 chat_id=self.config.get('notifications').get('chat_id'),
-                text="%s Free memory is %s!" % (
+                text="%s Free memory is %s: %s%%!" % (
                     "✅" if self.__is_ok else "🔥",
-                    "OK" if self.__is_ok else "LOW"
+                    "OK" if self.__is_ok else "LOW",
+                    round((hdd.free / hdd.total) * 100)
                 ),
                 parse_mode='html'
             )
