@@ -12,7 +12,7 @@ class TorrentSearchService:
         self.jackett = api
         self.logger = logging.getLogger('TorrentSearchService')
 
-    @cachetools.func.ttl_cache(ttl=10 * 60)
+    @cachetools.func.ttl_cache(ttl=60 * 60)  # remember for one hour
     def search(self, query, categories=['movies', 'tv']):
         self.logger.info(f"Searcing for `{query}`")
         query_text = query.lower()

@@ -55,8 +55,8 @@ class Configurator:
         inject.clear_and_configure(configurator)
 
     def __make_db(self, cfg):
-        config = cfg.get('db')
-        db = MySQLDatabase(config.pop('name'), **config)
+        db_cfg = cfg.get('db')
+        db = MySQLDatabase(db_cfg.pop('name'), **db_cfg)
         from mediatorr.models.model import database_proxy
         database_proxy.initialize(db)
         return db

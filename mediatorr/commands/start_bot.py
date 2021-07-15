@@ -3,6 +3,7 @@ import logging
 
 from mediatorr.workers.notifications import NotifyOnDownloadCompleteWorker, StartupNotificationWorker, \
     FollowNotificationsWorker
+from mediatorr.workers.system import ReconnectDatabaseWorker, NotifyLowMemoryWorker
 
 
 class StartBotCommand:
@@ -14,7 +15,9 @@ class StartBotCommand:
         self.workers = [
             NotifyOnDownloadCompleteWorker,
             FollowNotificationsWorker,
-            StartupNotificationWorker
+            StartupNotificationWorker,
+            ReconnectDatabaseWorker,
+            NotifyLowMemoryWorker
         ]
         self.running_workers = []
 

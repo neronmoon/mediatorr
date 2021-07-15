@@ -12,7 +12,8 @@ class Controller:
 
     def update_message(self, count_update=True, **kwargs):
         text_has_changed = 'text' in kwargs and self.message.text != kwargs.get('text')
-        if not text_has_changed and 'reply_markup' not in kwargs:
+        has_keyboard = 'reply_markup' in kwargs and bool(kwargs.get('reply_markup').to_dict().get('inline_keyboard'))
+        if not text_has_changed and not has_keyboard:
             return
         if count_update:
             self.__was_updated = True
@@ -26,8 +27,9 @@ class Controller:
             self.message = self.bot.edit_message_text(**args)
         except Exception as e:
             if "specified new message content and reply markup are exactly the same" not in e.args[0]:
-                del args['message_id']
-                self.message = self.bot.send_message(**args)
+                return
+                # del args['message_id']
+                # self.message = self.bot.send_message(**args)
 
     def run(self, is_callback, message):
         if is_callback:

@@ -12,3 +12,4 @@ pymysql
 python-dotenv
 sentry_sdk==0.14.2
 cachetools
+psutil

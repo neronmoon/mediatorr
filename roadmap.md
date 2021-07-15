@@ -8,4 +8,4 @@
 - Remove restarts (done?)
 - Add async commands
 - Migrate to mysql (done)
-- reduce cpu usage
+- reduce cpu usage (done)
