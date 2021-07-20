@@ -3,16 +3,6 @@ from mediatorr.workers.worker import Worker
 import inject
 import psutil
 
-
-class ReconnectDatabaseWorker(Worker):
-    db = inject.attr('db')
-
-    interval = convert_to_seconds('1m')
-
-    def tick(self):
-        self.db.connect(True)
-
-
 class NotifyLowMemoryWorker(Worker):
     interval = convert_to_seconds('1m')
     config = inject.attr('config')

@@ -13,6 +13,7 @@ from mediatorr.services.torrent_client_service import TorrentClientService
 from mediatorr.services.api.jackett import Jackett
 from qbittorrentapi import Client
 from peewee import *
+from playhouse.shortcuts import ReconnectMixin
 
 
 class Configurator:
@@ -56,7 +57,11 @@ class Configurator:
 
     def __make_db(self, cfg):
         db_cfg = cfg.get('db')
-        db = MySQLDatabase(db_cfg.pop('name'), **db_cfg)
+
+        class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
+            pass
+
+        db = ReconnectMySQLDatabase(db_cfg.pop('name'), **db_cfg)
         from mediatorr.models.model import database_proxy
         database_proxy.initialize(db)
         return db
