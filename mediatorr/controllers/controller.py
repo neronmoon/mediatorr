@@ -67,7 +67,12 @@ class Controller:
         try:
             text = kwargs['text']
             del kwargs['text']
-            return self.bot.reply_to(message, text, **kwargs)
+            return self.bot.send_message(
+                message.chat.id,
+                text,
+                reply_to_message_id=message.message_id,
+                **kwargs
+            )
         except Exception as e:
             logging.warning("Tried to reply to deleted message id %s in chat %s" % (
                 message.message_id, message.chat.id,

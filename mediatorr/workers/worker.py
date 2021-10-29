@@ -5,7 +5,7 @@ import logging
 
 class Worker(threading.Thread):
     alive = True
-    interval = 5
+    interval = 20
     last_run = 0
 
     def run(self):

@@ -7,7 +7,7 @@ import json, threading, inject, telebot, time
 class LiveMessage:
     live_thread = None
     live_update = True
-    live_update_timeout = 2
+    live_update_timeout = 10
 
     bot = inject.attr('bot')
 
@@ -37,7 +37,6 @@ class LiveMessage:
                 self.update_message_handler()
             except telebot.apihelper.ApiException as e:
                 pass
-            self.logger.info('Live message update!')
             time.sleep(self.live_update_timeout)
 
 
