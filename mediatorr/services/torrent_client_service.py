@@ -45,7 +45,7 @@ class TorrentClientService:
             'category': search_model.category,
             'rename': search_model.source_link,
         }
-        if path.startswith('magnet?:'):
+        if path.startswith('magnet:?'):
             self.client.torrents_add(urls=[path], **args)
             time.sleep(5)  # waiting for magnet resolution
         else:
