@@ -65,7 +65,7 @@ class TorrentDto(dict):
             'missingFiles': TORRENT_STATE_ERROR,
             'forcedUP': TORRENT_STATE_OK,
             'allocating': TORRENT_STATE_CHECKING,
-            'forceDL': TORRENT_STATE_DOWNLOADING,
+            'forcedDL': TORRENT_STATE_DOWNLOADING,
             'moving': TORRENT_STATE_CHECKING,
             'unknown': TORRENT_STATE_UNKNOWN,
         }

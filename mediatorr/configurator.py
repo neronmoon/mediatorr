@@ -75,23 +75,8 @@ class Configurator:
         return processor
 
     def __make_bot(self, config, processor):
-        bot = telebot.TeleBot(
-            config.get('telegram').get('token'),
-            threaded=True
-        )
-        bot.add_message_handler({
-            'function': processor.process_message,
-            'filters': {'content_types': ['text']},
-            'instance': processor
-        })
-        bot.add_message_handler({
-            'function': processor.process_file,
-            'filters': {'content_types': ['document']},
-            'instance': processor
-        })
-        bot.add_callback_query_handler({
-            'function': processor.process_callback,
-            'filters': {'func': lambda _1: True},
-            'instance': processor
-        })
+        bot = telebot.TeleBot(config.get('telegram').get('token'))
+        bot.register_message_handler(processor.process_message, ['text'])
+        bot.register_message_handler(processor.process_file, ['document'])
+        bot.register_callback_query_handler(processor.process_callback, func=lambda _1: True)
         return bot
