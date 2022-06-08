@@ -14,7 +14,7 @@ class TorrentSearchService:
 
     @cachetools.func.ttl_cache(ttl=60 * 60)  # remember for one hour
     def search(self, query, categories=['movies', 'tv']):
-        self.logger.info(f"Searcing for `{query}`")
+        self.logger.info(f"Searching for `{query}`")
         query_text = query.lower()
         query_model, created = SearchQuery.get_or_create(
             query=query_text,

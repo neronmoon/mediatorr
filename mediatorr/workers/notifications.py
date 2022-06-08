@@ -88,7 +88,7 @@ class FollowNotificationsWorker(Worker):
             if updates:
                 logging.info("[FollowNotificationsWorker] Found updates! Sending message")
                 msg_params = search_view(query_model, updates, model.chat_id)
-                greeting_text = "<b>🔥🔥🔥 Here is updates for `%s` query! 🔥🔥🔥</b>" % query_model.query
+                greeting_text = "<b>🍿 Here is updates for `%s`!</b>" % query_model.query
                 items_text = msg_params['text']
                 del msg_params['text']
                 message = self.bot.send_message(model.chat_id, greeting_text, parse_mode='html')
