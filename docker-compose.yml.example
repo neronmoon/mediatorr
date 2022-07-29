@@ -1,0 +1,55 @@
+---
+version: '3.3'
+
+services:
+  qbittorrent:
+    image: linuxserver/qbittorrent:14.3.9
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Kaliningrad
+      - UMASK_SET=022
+      - WEBUI_PORT=8080
+    volumes:
+      - ./qbittorent_config:/config
+      - type: bind
+        source: /media/drive/Downloads
+        target: /downloads
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+      - 8080:8080
+    restart: always
+  mediatorr:
+    build: .
+    container_name: mediatorr
+    restart: always
+    environment:
+      - TELEGRAM_TOKEN=
+      - TELEGRAM_CHAT_ID=
+      - TMDB_TOKEN=
+      - QBITTORRENT_URL=http://qbittorrent:8080
+      - QBITTORRENT_USERNAME=
+      - QBITTORRENT_PASSWORD=
+      - JACKETT_URL=http://jackett:9117
+      - JACKETT_TOKEN=
+      - DB_HOST=
+      - DB_NAME=
+      - DB_USER=
+      - DB_PASSWORD=
+    depends_on:
+      - qbittorrent
+  jackett:
+    image: linuxserver/jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Kaliningrad
+    volumes:
+      - jackett:/config
+      - jackett:/downloads
+    restart: always
+  flaresolver:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    restart: always
