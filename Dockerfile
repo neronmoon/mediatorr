@@ -1,7 +1,8 @@
-FROM python:3
+FROM python:3.9
 
-COPY . /opt/app
 WORKDIR /opt/app
+COPY requirements.txt /opt/app
 RUN pip install -r requirements.txt
+COPY . /opt/app
 
-CMD python ./console
+CMD python ./console start

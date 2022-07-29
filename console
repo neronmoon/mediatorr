@@ -1,9 +1,35 @@
 #!/usr/bin/env python3
-from mediatorr.app import App
+import argparse
+
+from mediatorr.configurator import Configurator
+from mediatorr.commands.start_bot import StartBotCommand
+from mediatorr.commands.db import DatabaseCommand
+
+commands = [
+    StartBotCommand,
+    DatabaseCommand
+]
+
+
+def build_arg_parser():
+    parser = argparse.ArgumentParser(description='Mediatorr')
+    subparsers = parser.add_subparsers(title='Available commands', metavar='')
+    for cls in commands:
+        subparser = subparsers.add_parser(cls.command, help=cls.help)
+        subparser.set_defaults(command_class=cls)
+        cls.configure(subparser)
+    return parser
 
 
 def main():
-    App().run()
+    Configurator().configure()
+    parser = build_arg_parser()
+    args = parser.parse_args()
+    if 'command_class' in args:
+        command = args.command_class()
+        command.handle(args.__dict__)
+    else:
+        print(parser.format_help())
 
 
 if __name__ == '__main__':

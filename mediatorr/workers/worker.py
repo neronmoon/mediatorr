@@ -1,26 +1,32 @@
 import time
 import threading
+import logging
 
 
 class Worker(threading.Thread):
     alive = True
-    interval = 10
-    exceptions_count = 5
+    interval = 20
+    last_run = 0
 
     def run(self):
-        exceptions = []
         self.on_start()
         while self.alive:
-            try:
+            current_time = time.time()
+            if current_time - self.last_run > self.interval:
                 self.tick()
-                time.sleep(self.interval)
-            except Exception as e:
-                exceptions.append(e)
-                if len(exceptions) >= self.exceptions_count:
-                    raise e
+                self.last_run = current_time
+            time.sleep(1)
+        logging.info("Worker %s stopped" % self.__get_name())
 
     def on_start(self):
         pass
 
     def tick(self):
         pass
+
+    def stop(self):
+        logging.info("Worker %s stop requested" % self.__get_name())
+        self.alive = False
+
+    def __get_name(self):
+        return self.__class__.__name__

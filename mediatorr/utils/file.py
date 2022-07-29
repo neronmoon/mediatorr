@@ -5,7 +5,8 @@ import tempfile
 
 import inject
 import requests
-import yaml
+
+from mediatorr.services.yaml import Yaml
 
 
 def parse_yaml_file(file_path):
@@ -14,7 +15,7 @@ def parse_yaml_file(file_path):
 
 
 def read_yaml(string):
-    return yaml.safe_load(string)
+    return Yaml.parse(string)
 
 
 def download_telegram_file(file_info):

@@ -2,27 +2,35 @@ logging:
   level: INFO
 
 db:
-  path: db/database.db
+  host: !ENV ${DB_HOST|127.0.0.1}
+  port: !ENV ${DB_PORT|3306|int}
+  user: !ENV ${DB_USER|root}
+  password: !ENV ${DB_PASSWORD|root}
+  name: !ENV ${DB_NAME|mediatorr}
+
+
+sentry:
+  dsn: !ENV ${SENTRY_DSN|https://9dbb8eeabf57429ca58e5e327b86d0f5@sentry.io/5009268}
 
 telegram:
-  token: 965672840:AAEPqMkejPuGmTBPkEn6uHz5wQi5SQfI1LQ
+  token: !ENV ${TELEGRAM_TOKEN}
   users:
-    - 42246983
+    - !ENV ${TELEGRAM_CHAT_ID}
 
 notifications:
-  chat_id: 42246983
-
+  follow_check_interval: !ENV ${NOTIFICATIONS_CHECK_INTERVAL|2h}
+  chat_id: !ENV ${TELEGRAM_CHAT_ID}
 
 tmdb:
   image_prefix: https://image.tmdb.org/t/p/w500/
-  token: 5faf37a82fc681bbe1d2de068ff5b4f1
+  token: !ENV ${TMDB_TOKEN}
 
 
 qbittorrent:
-  url: http://qbittorrent:8080
-  username: neronmoon
-  password: 5588898
+  url: !ENV ${QBITTORRENT_URL|http://qbittorrent:8080}
+  username: !ENV ${QBITTORRENT_USERNAME}
+  password: !ENV ${QBITTORRENT_PASSWORD}
 
 jackett:
-  url: http://jackett:9117
-  token: 8k4rlplcixexjygofuajo6849lrbeo4e
+  url: !ENV ${JACKETT_URL|http://jackett:9117}
+  token: !ENV ${JACKETT_TOKEN}

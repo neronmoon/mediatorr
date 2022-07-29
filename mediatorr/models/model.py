@@ -1,15 +1,8 @@
-from tinydb import Query
-import inject
+from peewee import DatabaseProxy, Model
+
+database_proxy = DatabaseProxy()
 
 
-class Model(dict):
-    table = '_default'
-
-    @classmethod
-    def get_table(cls):
-        return inject.instance('db').table(cls.table)
-
-    @staticmethod
-    def query():
-        return Query()
-
+class BaseModel(Model):
+    class Meta:
+        database = database_proxy

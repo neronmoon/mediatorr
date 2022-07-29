@@ -6,18 +6,23 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
-intervals = (
-    ('w', 604800),  # 60 * 60 * 24 * 7
-    ('d', 86400),  # 60 * 60 * 24
-    ('h', 3600),  # 60 * 60
-    ('m', 60),
-    ('s', 1),
-)
+def convert_to_seconds(s):
+    result = 0
+    for time in s.split(" "):
+        seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
+        result += int(time[:-1]) * seconds_per_unit[time[-1]]
+    return result
 
 
 def time_fmt(seconds, granularity=2):
+    intervals = (
+        ('w', 604800),  # 60 * 60 * 24 * 7
+        ('d', 86400),  # 60 * 60 * 24
+        ('h', 3600),  # 60 * 60
+        ('m', 60),
+        ('s', 1),
+    )
     result = []
-
     for name, count in intervals:
         value = seconds // count
         if value:
