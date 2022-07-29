@@ -28,7 +28,6 @@ services:
     environment:
       - TELEGRAM_TOKEN=
       - TELEGRAM_CHAT_ID=
-      - TMDB_TOKEN=
       - QBITTORRENT_URL=http://qbittorrent:8080
       - QBITTORRENT_USERNAME=
       - QBITTORRENT_PASSWORD=
