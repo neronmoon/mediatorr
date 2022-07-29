@@ -7,3 +7,4 @@ jackett to pass cloudflare checks.
 
 You'll need to manually setup jackett's trackers and telegram bot, see docker-compose.yml.example for the hint
 
+I use mariadb on host machine, you'll need to run migrations using `./console db fresh` command 
