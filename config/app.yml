@@ -10,7 +10,7 @@ db:
 
 
 sentry:
-  dsn: !ENV ${SENTRY_DSN|https://9dbb8eeabf57429ca58e5e327b86d0f5@sentry.io/5009268}
+  dsn: !ENV ${SENTRY_DSN}
 
 telegram:
   token: !ENV ${TELEGRAM_TOKEN}
