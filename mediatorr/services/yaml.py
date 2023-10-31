@@ -72,8 +72,7 @@ class Yaml:
     @staticmethod
     def parse(raw_content):
         Yaml._configure()
-        yaml = YAML(typ='rt')
-        return dict(yaml.load(raw_content, Loader=ruamel.yaml.SafeLoader)).copy()
+        return dict(ruamel.yaml.load(raw_content, Loader=ruamel.yaml.SafeLoader)).copy()
 
     @staticmethod
     def dump(data):
