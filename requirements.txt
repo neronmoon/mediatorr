@@ -9,6 +9,7 @@ simplejson
 parse-torrent-name
 peewee
 pymysql
+PyMySQL[rsa]
 python-dotenv
 sentry_sdk==0.14.2
 cachetools
